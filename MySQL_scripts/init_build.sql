@@ -1,6 +1,6 @@
 START TRANSACTION;
-
 USE employee_wellness;
+
 
 -- Disable foreign key checks to avoid issues during table creation
 SET FOREIGN_KEY_CHECKS = 0;
