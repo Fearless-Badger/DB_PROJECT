@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Employees</h1>
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Role</th>
+        <th>Email</th>
+    </tr>
+    {% for emp in employees %}
+    <tr>
+        <td>{{ emp.employee_id }}</td>
+        <td>{{ emp.fname }} {{ emp.lname }}</td>
+        <td>{{ emp.role }}</td>
+        <td>{{ emp.work_email }}</td>
+        <td>
+            <!-- -->
+            <!-- -->
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+<a href="{{ url_for('index') }}">Return to Home</a>
+{% endblock %}
