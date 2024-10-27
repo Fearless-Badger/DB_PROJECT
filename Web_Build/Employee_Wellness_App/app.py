@@ -38,10 +38,54 @@ def employees():
     finally:
         con.close()
 
-
 # Not yet implemented
+@app.route('/secretary_home')
+def secretary_home():
+    return render_template('secretary_home.html')
+
+@app.route('/coordinator_home')
+def coordinator_home():
+    return render_template('coordinator_home.html')
+
 @app.route('/add_employee', methods =['GET', 'POST'])
 def add_employee():
     if request.method == 'POST':
         pass
     return render_template('add_employee.html')
+
+@app.route('/delete_employee')
+def delete_employee():
+    return render_template('delete_employee.html')
+
+@app.route('/enroll_employee')
+def enroll_employee():
+    return render_template('enroll_employee.html')
+
+@app.route('/add_wellness_program')
+def add_wellness_program():
+    return render_template('add_wellness_program.html')
+
+@app.route('/view_health_metric')
+def view_health_metric():
+    return render_template('view_health_metric.html')
+
+@app.route('/create_health_metric')
+def create_health_metric():
+    return render_template('create_health_metric.html')
+
+@app.route('/view_enrollment_list')
+def view_enrollment_list():
+    return render_template('view_enrollment_list.html')
+
+@app.route('/view_department_breakdown')
+def view_department_breakdown():
+    return render_template('view_department_breakdown.html')
+
+@app.route('/health_highlight')
+def health_highlight():
+    return render_template('health_highlight.html')
+
+@app.route('/successful_program')
+def successful_program():
+    return render_template('successful_program.html')
+
