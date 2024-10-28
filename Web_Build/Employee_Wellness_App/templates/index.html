@@ -1,6 +1,21 @@
 <!-- templates/index.html -->
-{% extends "base.html" %}
-{% block content %}
-<h1>Welcome to the Employee Wellness App</h1>
-<p>This application allows you to manage employees, wellness programs, and health metrics.</p>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Page</title>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="{{ url_for('secretary_home') }}">Secretary</a>
+            <a href="{{ url_for('coordinator_home') }}">Coordinator</a>
+            <a href="{{url_for('employees') }}">Employees</a>
+        </nav>
+    </header>
+    <div class="content">
+        <h1>Welcome to the Employee Wellness App</h1>
+        <p>This application allows you to manage employees, wellness programs, and health metrics.</p>
+    </div>
+</body>

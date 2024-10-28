@@ -3,6 +3,10 @@
 #venv folder
 venv
 
+#vscode settings
+.vscode
+.vscode/settings.json
+
 #config file
 config.py
 
