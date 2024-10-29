@@ -2,7 +2,7 @@ HOW TO SETUP AND VIEW WEBPAGE:
 
     1. REQUIREMENTS & SETUP:
 
-    python 3.12.2, from python.org. Not MSYS or some linux fashioned python install.
+    python 3.12.2 , from python.org. Not MSYS or some linux fashioned python install.
 
     MySQL installed in full, with a DB host, username, and password ready to be configured
 
@@ -50,3 +50,5 @@ HOW TO SETUP AND VIEW WEBPAGE:
 
     4. Run the 'run.py' file in the 'Employee_Wellness_App' folder
        Next follow the link provided in the cmd propmt
+
+    5. Test contributions on staging branch, or your own branch.
