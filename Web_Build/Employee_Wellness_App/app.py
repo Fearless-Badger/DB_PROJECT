@@ -1,5 +1,5 @@
 #Import Flask, Config file and PyMySQL
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 from config import Config
 import pymysql
 
@@ -17,26 +17,128 @@ def get_db_connection():
         cursorclass=pymysql.cursors.DictCursor
     )
 
-# Render index.html
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-# Return a list of all employees
-@app.route('/employees')
-def employees():
+# This function returns true if the credentials correspond to a coordinator in the database, false otherwise
+def verify_coordinator(email, id_num, cred):
     con = get_db_connection()
+    result = False
+
     try:
         with con.cursor() as cursor:
-            cursor.execute('SELECT employee_id, fname, lname, role, work_email FROM employee')
-            employees = cursor.fetchall()
-            return render_template('employees.html', employees=employees)
+            query = """
+                        SELECT e.employee_id, e.work_email, wc.coordinator_credentials 
+                        FROM employee e
+                        JOIN wellness_coordinator wc ON e.employee_id = wc.employee_id
+                        WHERE e.work_email = %s AND e.employee_id = %s AND e.role = 'coordinator' AND wc.coordinator_credentials = %s
+                    """
+            cursor.execute(query, (email, id_num, cred))
+            row = cursor.fetchone()
+
+            if row and row['work_email'] == email and int(row['employee_id']) == int(id_num) and row['coordinator_credentials'] == cred:
+                result = True
+            else:
+                print("Coordinator Authentication failed in verify_coordinator")
+
     except Exception as e:
+        print(f"An error occurred in verify_coordinator: {e}")
+        result = False
+    
+    finally:
+        con.close()
+    
+    return result
+
+
+
+# This funcion returns true if the credentials provided correspond to a secretary in the databse, false otehrwise
+def verify_secretary(email, id_num):
+    con = get_db_connection()
+    result = False
+
+    try:
+        with con.cursor() as cursor:
+            query = """
+                        SELECT employee_id, work_email, role 
+                        FROM employee 
+                        WHERE work_email = %s AND employee_id = %s AND role = 'secretary'
+                    """
+            cursor.execute(query, (email, id_num))
+            row = cursor.fetchone()
+
+            if row and row['work_email'] == email and int(row['employee_id']) == int(id_num):
+                result = True
+            else:
+                print("Failed at line 72 in verify_secretary")
+
+    except Exception as e:
+        print(f"An error occurred in verify_secretary: {e}")
+        result = False
+    finally:
+        con.close()
+    
+    return result
+
+
+
+
+
+#START HERE
+@app.route('/', methods = ['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        identification_num = request.form.get('ID Number')
+        email = request.form.get('email-address')
+        credentials = request.form.get('credentials')
+
+        is_coordinator = False
+        user_authenticated = False
+
+        if identification_num and email:
+
+            try: 
+                identification_num = int(identification_num)
+            except ValueError:
+                flash("ID number must be a number")
+                return redirect(url_for('login'))
+            
+            
+            if credentials:
+                is_coordinator = verify_coordinator(email, int(identification_num), credentials)
+                user_authenticated = is_coordinator
+            else:
+                user_authenticated = verify_secretary(email, int(identification_num))
+        else:
+            flash("You must")
+            return redirect(url_for('login'))
+
+        #session['user'] = 0 # replace with role for employee, if using sessions
+
+
+        if user_authenticated and is_coordinator:
+            return render_template('coordinator_home.html')
+        elif user_authenticated:
+            return render_template('secretary_home.html')
+        else:
+            flash('Incorrect Credentials')
+            return redirect(url_for('login'))
+
+    else: #GET
+        return render_template('login.html')
+
+# Return a list of all employees
+@app.route('/employees')                                                                             # route app 
+def employees():
+    con = get_db_connection()                                                                        # create connection, assing to con
+    try:                                                                                                    
+        with con.cursor() as cursor:                                                                 # assign con.cursor to cursor
+            cursor.execute('SELECT employee_id, fname, lname, role, work_email FROM employee')       # Execute Query, store results in cursor
+            employees = cursor.fetchall()                                                            # store query results in employees
+            return render_template('employees.html', employees=employees)                            # return template, as well as data to be displayed
+    except Exception as e:                                                                           # Exception handling
         print(f"An error occurred: {e}")
         print("Config variables: ", app.config['DB_HOST'], app.config['DB_USER'], app.config['DB_PASSWORD'], app.config['DB_NAME'])
         return render_template('employees.html', error="Could not fetch employees.")
     finally:
-        con.close()
+        con.close()                                                                                  # Always use 'finally' to ensure DB connection gets closed
 
 # Not yet implemented
 @app.route('/secretary_home')
