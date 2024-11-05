@@ -67,7 +67,7 @@ def verify_secretary(email, id_num):
             if row and row['work_email'] == email and int(row['employee_id']) == int(id_num):
                 result = True
             else:
-                print("Failed at line 72 in verify_secretary")
+                print("Failed at line 67 in verify_secretary")
 
     except Exception as e:
         print(f"An error occurred in verify_secretary: {e}")
@@ -107,7 +107,7 @@ def login():
             else:
                 user_authenticated = verify_secretary(email, int(identification_num))
         else:
-            flash("You must")
+            flash("You must provide your ID number and email address")
             return redirect(url_for('login'))
 
         #session['user'] = 0 # replace with role for employee, if using sessions
