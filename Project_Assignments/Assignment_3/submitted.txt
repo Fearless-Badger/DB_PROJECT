@@ -1,0 +1,5 @@
+The following three files have been submitted to "Project-Phase3 relational schema"
+
+EER_SCHEMA_DB_PROJ.drawio
+EER_SCHEMA_DB_PROJ-Page-1.jpg
+Phase_Three.pdf
