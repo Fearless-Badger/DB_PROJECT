@@ -2,6 +2,187 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Employee</title>
+    <title>Activate Your Account</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ample+Display&display=swap" rel="stylesheet">
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Ample Display', sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* Left Box (Header) */
+        .header-box {
+            background-color: #f4c3a2;
+            border-radius: 20px;
+            padding: 2rem;
+            width: 464.1px; /* Updated width */
+            height: 271.4px; /* Updated height */
+            box-shadow: 0 2px 8px rgba(63, 69, 81, 0.16);
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Center content vertically */
+            align-items: center; /* Center content horizontally */
+        }
+
+        .header-box h2 {
+            font-size: 50.9px; /* Updated font size */
+            color: #8795a8;
+            text-align: center;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        /* Right Box (Form) */
+        .form-box {
+            background-color: #8795a8;
+            border-radius: 20px;
+            padding: 2rem;
+            width: 569.7px; /* Right box width */
+            height: 712.5px; /* Right box height */
+            box-shadow: 0 2px 8px rgba(63, 69, 81, 0.16);
+            z-index: 0;
+            display: flex;
+            flex-direction: column; /* Align items vertically */
+        }
+
+        /* Form Fields */
+        .form-group {
+            margin-bottom: 1rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 0.3rem;
+        }
+
+        /* Styled Inputs */
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group input[type="email"],
+        .form-group select {
+            width: 100%; /* Ensures uniform width */
+            height: 40px; /* Set height for all inputs */
+            padding: 0.5rem; /* Padding to maintain consistency */
+            border-radius: 8px;
+            border: 2px dotted #ffffff;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        /* Button */
+        .form-group button[type="submit"] {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: #ffffff;
+            color: #8795a8;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            height: 40px; /* Set height for button to match inputs */
+        }
+
+        .form-group button[type="submit"]:hover {
+            background-color: #f4c3a2;
+        }
+
+        /* Coordinator Fields */
+        #coordinator_fields {
+            display: none;
+        }
+    </style>
 </head>
+<body>
+
+<div class="header-box">
+    <h2>Activate Your Account</h2>
+</div>
+
+<div class="form-box">
+    <form action="/add_employee" method="post">
+        <div class="form-group">
+            <label for="employee_id">Employee ID:</label>
+            <input type="number" id="employee_id" name="employee_id" required>
+        </div>
+
+        <div class="form-group">
+            <label for="fname">First Name:</label>
+            <input type="text" id="fname" name="fname" required>
+        </div>
+
+        <div class="form-group">
+            <label for="middle_initial">Middle Initial:</label>
+            <input type="text" id="middle_initial" name="middle_initial" maxlength="1">
+        </div>
+
+        <div class="form-group">
+            <label for="lname">Last Name:</label>
+            <input type="text" id="lname" name="lname" required>
+        </div>
+
+        <div class="form-group">
+            <label for="role">Role:</label>
+            <select id="role" name="role">
+                <option value="worker">Participant</option>
+                <option value="secretary">Secretary</option>
+                <option value="coordinator">Wellness Coordinator</option>
+            </select>
+        </div>
+
+        <div class="form-group" id="coordinator_fields">
+            <label for="area_of_expertise">Area of Expertise:</label>
+            <input type="text" id="area_of_expertise" name="area_of_expertise">
+
+            <label for="coordinator_credentials">Coordinator Credentials:</label>
+            <input type="text" id="coordinator_credentials" name="coordinator_credentials">
+        </div>
+
+        <div class="form-group">
+            <label for="phone_number">Phone Number:</label>
+            <input type="text" id="phone_number" name="phone_number" required>
+        </div>
+
+        <div class="form-group">
+            <label for="department_id">Department:</label>
+            <select id="department_id" name="department_id">
+                <option value="sales">Sales</option>
+                <option value="marketing">Marketing</option>
+                <option value="finance">Finance</option>
+                <option value="operations">Operations</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="work_email">Work Email:</label>
+            <input type="email" id="work_email" name="work_email" required>
+        </div>
+
+        <div class="form-group">
+            <button type="submit">Add Employee</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.getElementById("role").addEventListener("change", function() {
+        const coordinatorFields = document.getElementById("coordinator_fields");
+        coordinatorFields.style.display = this.value === "coordinator" ? "block" : "none";
+    });
+</script>
+
+</body>
+</html>
