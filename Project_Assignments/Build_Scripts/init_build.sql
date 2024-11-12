@@ -23,7 +23,7 @@ CREATE TABLE employee (
     fname VARCHAR(20),
     middle_initial CHAR(1),
     lname VARCHAR(50),
-    role ENUM('worker', 'secretary', 'coordinator'),
+    `role` ENUM('worker', 'secretary', 'coordinator'),
     phone_number VARCHAR(20),
     department_id ENUM('sales', 'marketing', 'finance', 'operations'), -- (sales, marketing, finance, operations)
     work_email VARCHAR(30)
@@ -44,7 +44,7 @@ CREATE TABLE wellness_program (
     end_date DATE,
     program_name VARCHAR(20),
     start_date DATE,
-    type ENUM('bmi', 'blood_pressure', 'heart_rate', 'cholesterol'),
+    `type` ENUM('bmi', 'blood_pressure', 'heart_rate', 'cholesterol'),
     FOREIGN KEY(employee_id) REFERENCES wellness_coordinator(employee_id)
         ON DELETE CASCADE
         ON UPDATE CASCADE

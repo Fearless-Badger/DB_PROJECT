@@ -17,13 +17,13 @@ HOW TO SETUP AND VIEW WEBPAGE:
 
         If you use VSCODE like me, then its easy
 
-        a)     SHIFT + CTRL + P -->  
+        a.     SHIFT + CTRL + P -->  
                "Python: Select Intrepreter" --> 
 	           "Python 3.12.2 ('venv':venv) .\venv\Scripts\python.exe      Recommended" 
 
 	            ----- (Recommended or Workspace works) -----
 
-        b)   Now when you hover over 'pwsh' in the top right of the terminal, you will see "Show Environment Contributions"
+        b.   Now when you hover over 'pwsh' in the top right of the terminal, you will see "Show Environment Contributions"
 
             The contents should include 
 
@@ -52,5 +52,3 @@ HOW TO SETUP AND VIEW WEBPAGE:
        Next follow the link provided in the cmd propmt
 
     5. Test contributions on staging branch, or your own branch.
-
-    This is a change

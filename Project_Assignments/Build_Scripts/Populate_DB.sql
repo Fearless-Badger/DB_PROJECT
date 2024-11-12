@@ -47,7 +47,7 @@ VALUES
 -- 'bmi', 'blood_pressure', 'heart_rate', 'cholesterol'
 
 -- Insert wellness programs
-INSERT INTO wellness_program (program_id, employee_id, end_date, program_name, start_date, type)
+INSERT INTO wellness_program (program_id, employee_id, end_date, program_name, start_date, `type`)
 VALUES
 (201, 103, '2026-12-31', 'Fitness Challenge', '2023-09-01', 'bmi'),
 (202, 105, '2026-12-31', 'Mindfulness Workshop', '2023-09-15', 'heart_rate'),
@@ -92,6 +92,11 @@ VALUES
 (126, 210);
 
 -- Insert health metrics with trends
+
+-- employee 101 - 104 are in program 201, type = "bmi"
+-- employee 105 - 108 are in program 202, type = "heart_rate"
+-- employee 109 - 112 are in program 203, type = "cholesterol"
+
 INSERT INTO health_metrics (employee_id, date_measured, cholesterol_levels, resting_heart_rate, blood_pressure_systolic, blood_pressure_diastolic, bmi)
 VALUES
 (101, '2023-09-01', 180, 72, 120, 80, 24.5),
