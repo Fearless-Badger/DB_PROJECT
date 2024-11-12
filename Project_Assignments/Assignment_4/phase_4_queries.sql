@@ -49,7 +49,6 @@ FROM(
 
 SELECT MAX(date_measured) FROM health_metrics, employee WHERE health_metrics.employee_id = employee.employee_id;
 
-
 -- query 4 (done)
 
 SELECT fname, lname, work_email, phone_number, coordinated_by.program_id
