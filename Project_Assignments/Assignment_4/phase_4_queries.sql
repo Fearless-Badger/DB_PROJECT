@@ -82,6 +82,16 @@ WHERE date_measured = (
      WHERE health_metrics.employee_id = employee.employee_id)
      );
 
+-- query 6 (done) finds employees who are not participating in any wellness programs
+
+SELECT fname, lname, work_email
+FROM employee
+WHERE employee_id 
+NOT IN (
+SELECT employee_id
+FROM participates_in
+);
+
 
 
 
