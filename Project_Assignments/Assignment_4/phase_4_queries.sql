@@ -21,7 +21,7 @@ SELECT * FROM employee;
 
 -- query 1(done)
 
-SELECT department_id, count(*)
+SELECT distinct department_id, count(*)
 FROM employee, participates_in, wellness_program
 WHERE   participates_in.program_id = wellness_program.program_id 
 	AND wellness_program.program_id = 203 
@@ -31,7 +31,7 @@ GROUP BY department_id;
 
 -- query 2(done)
 
-SELECT wellness_program.program_id, count(*)
+SELECT distinct wellness_program.program_id, count(*)
 FROM wellness_program, participates_in, employee
 WHERE 
 	wellness_program.program_id = participates_in.program_id
@@ -40,7 +40,7 @@ GROUP BY program_id;
 
 -- query 3(broken)
 
-SELECT fname, lname, work_email, phone_number
+SELECT distinct fname, lname, work_email, phone_number
 FROM(
 	SELECT *
     FROM employee, health_metrics -- , wellness_program
@@ -49,9 +49,10 @@ FROM(
 
 SELECT MAX(date_measured) FROM health_metrics, employee WHERE health_metrics.employee_id = employee.employee_id;
 
--- query 4 (done)
 
-SELECT fname, lname, work_email, phone_number, coordinated_by.program_id
+-- query 4 (done, could use improvement)
+
+SELECT distinct fname, lname, work_email, phone_number, coordinated_by.program_id
 FROM(
 	SELECT *
     FROM employee
@@ -60,9 +61,26 @@ FROM(
 wellness_program, coordinated_by
 WHERE 
 	wellness_program.program_id = coordinated_by.program_id
-AND coordinated_by.employee_id  = contacts.employee_id
-;
+AND coordinated_by.employee_id  = contacts.employee_id;
 
+
+-- query 5 (done)
+
+SELECT fname as 'First Name', 
+	   lname as 'Last Name', 
+	   resting_heart_rate as 'Resting BPM', 
+	   cholesterol_levels as 'Cholesterol', 
+       blood_pressure_systolic as 'Sys', 
+       blood_pressure_diastolic as 'DBP', 
+       bmi as 'BMI'
+FROM employee
+LEFT JOIN health_metrics
+ON employee.employee_id = health_metrics.employee_id
+WHERE date_measured = (
+	(SELECT MAX(date_measured) 
+     FROM health_metrics, employee 
+     WHERE health_metrics.employee_id = employee.employee_id)
+     );
 
 
 
