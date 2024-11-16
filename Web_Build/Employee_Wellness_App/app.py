@@ -171,20 +171,14 @@ def secretary_home():
 def coordinator_home():
     return render_template('coordinator_home.html')
 
-# args passed : 
-
-# employee_id, 
-# fname, 
-# middle_initial, 
-# lname, 
-# role, 
-# area_of_expertise,
-#  coordinator_credentials, 
-# phone_number, 
-# department_id, 
-# work_email, 
 
 # goal: ensure no employee exists with the given ID, 
+#       handle coordinator insertion
+# status: Achieved
+#
+# work needed: 
+#   - Frontend styling error when "Wellness Coordinator" is the selected role
+#   - Frontend "flash" style adjustment
 @app.route('/add_employee', methods =['GET', 'POST'])
 def add_employee():
     if request.method == 'POST':
