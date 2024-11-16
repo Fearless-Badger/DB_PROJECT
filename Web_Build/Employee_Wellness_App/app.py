@@ -80,7 +80,7 @@ def verify_employee(id_num):
     con = get_db_connection()
     result = False
     try:
-        with con.cursor as cursor:
+        with con.cursor() as cursor:
             query = """
                         SELECT employee_id 
                         FROM employee
@@ -188,10 +188,17 @@ def coordinator_home():
 @app.route('/add_employee', methods =['GET', 'POST'])
 def add_employee():
     if request.method == 'POST':
-        pass
-
+        open = not verify_employee(request.form.get('employee_id'))
+    
+        if not open:
+            flash("Employee ID number is taken!")
+            return render_template('add_employee.html')
         
+        if open:
+            flash('Success!')
+            return render_template('add_employee.html')
 
+    
     else:
         return render_template('add_employee.html')
 
