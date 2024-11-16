@@ -214,6 +214,21 @@ def add_employee():
                                     request.form.get('work_email')))
                     
                     con.commit() # commit insert
+
+                    
+                    if request.form.get('role') == 'coordinator':
+                        wc_insert = """
+                                        INSERT INTO wellness_coordinator (employee_id, area_of_expertise, coordinator_credentials)
+                                        VALUES (%s, %s, %s)
+                                    """
+                        
+                        cursor.execute(wc_insert,(
+                                       request.form.get('employee_id'),
+                                       request.form.get('area_of_expertise'),
+                                       request.form.get('coordinator_credentials')))
+                        
+                        con.commit()
+
             except Exception as e:
                 print(f"An error occurred in add_employee routing: {e}")
                 flash("error")
@@ -225,7 +240,7 @@ def add_employee():
                 flash('Success!')
                 return render_template('add_employee.html')
             else:
-                flash('Validation Error: 226')
+                flash('Validation Error: 243')
                 return render_template('add_employee.html')
     else:
         return render_template('add_employee.html')
