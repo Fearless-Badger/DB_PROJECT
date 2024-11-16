@@ -188,17 +188,45 @@ def coordinator_home():
 @app.route('/add_employee', methods =['GET', 'POST'])
 def add_employee():
     if request.method == 'POST':
+
         open = not verify_employee(request.form.get('employee_id'))
-    
         if not open:
             flash("Employee ID number is taken!")
             return render_template('add_employee.html')
-        
         if open:
-            flash('Success!')
-            return render_template('add_employee.html')
+            con = get_db_connection()
+            try:
+                with con.cursor() as cursor:
+                    insert ="""
+                                INSERT INTO employee (employee_id, fname, middle_initial, lname, `role` , phone_number, department_id, work_email)
+                                VALUES
+                                (%s, %s, %s, %s, %s, %s, %s, %s)
+                            """
+                    
+                    cursor.execute(insert, 
+                                   (request.form.get('employee_id'),
+                                    request.form.get('fname'),
+                                    request.form.get('middle_initial'),
+                                    request.form.get('lname'),
+                                    request.form.get('role'),
+                                    request.form.get('phone_number'),
+                                    request.form.get('department_id'),
+                                    request.form.get('work_email')))
+                    
+                    con.commit() # commit insert
+            except Exception as e:
+                print(f"An error occurred in add_employee routing: {e}")
+                flash("error")
+                return render_template('add_employee.html')
+            finally:
+                con.close()
 
-    
+            if verify_employee(request.form.get('employee_id')):
+                flash('Success!')
+                return render_template('add_employee.html')
+            else:
+                flash('Validation Error: 226')
+                return render_template('add_employee.html')
     else:
         return render_template('add_employee.html')
 
