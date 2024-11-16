@@ -25,7 +25,7 @@ def verify_coordinator(email, id_num, cred):
     try:
         with con.cursor() as cursor:
             query = """
-                        SELECT e.employee_id, e.work_email, wc.coordinator_credentials 
+                    SELECT e.employee_id, e.work_email, wc.coordinator_credentials 
                         FROM employee e
                         JOIN wellness_coordinator wc ON e.employee_id = wc.employee_id
                         WHERE e.work_email = %s AND e.employee_id = %s AND e.role = 'coordinator' AND wc.coordinator_credentials = %s
@@ -68,14 +68,36 @@ def verify_secretary(email, id_num):
                 result = True
             else:
                 print("Failed at line 67 in verify_secretary")
-
     except Exception as e:
         print(f"An error occurred in verify_secretary: {e}")
         result = False
     finally:
         con.close()
-    
     return result
+
+
+def verify_employee(id_num):
+    con = get_db_connection()
+    result = False
+    try:
+        with con.cursor() as cursor:
+            query = """
+                        SELECT employee_id 
+                        FROM employee
+                        WHERE employee_id = %s
+                    """
+            cursor.execute(query, (id_num))
+            if cursor.fetchone():
+                result = True
+            else:
+                result = False
+    except Exception as e:
+        print(f"An error occurred in verify_employee: {e}")
+        result = False
+    finally:
+        con.close()
+    return result
+    
 
 
 
@@ -149,11 +171,73 @@ def secretary_home():
 def coordinator_home():
     return render_template('coordinator_home.html')
 
+
+# goal: ensure no employee exists with the given ID, 
+#       handle coordinator insertion
+# status: Achieved
+#
+# work needed: 
+#   - Frontend styling error when "Wellness Coordinator" is the selected role
+#   - Frontend "flash" style adjustment
 @app.route('/add_employee', methods =['GET', 'POST'])
 def add_employee():
     if request.method == 'POST':
-        pass
-    return render_template('add_employee.html')
+
+        open = not verify_employee(request.form.get('employee_id'))
+        if not open:
+            flash("Employee ID number is taken!")
+            return render_template('add_employee.html')
+        if open:
+            con = get_db_connection()
+            try:
+                with con.cursor() as cursor:
+                    insert ="""
+                                INSERT INTO employee (employee_id, fname, middle_initial, lname, `role` , phone_number, department_id, work_email)
+                                VALUES
+                                (%s, %s, %s, %s, %s, %s, %s, %s)
+                            """
+                    
+                    cursor.execute(insert, 
+                                   (request.form.get('employee_id'),
+                                    request.form.get('fname'),
+                                    request.form.get('middle_initial'),
+                                    request.form.get('lname'),
+                                    request.form.get('role'),
+                                    request.form.get('phone_number'),
+                                    request.form.get('department_id'),
+                                    request.form.get('work_email')))
+                    
+                    con.commit() # commit insert
+
+                    
+                    if request.form.get('role') == 'coordinator':
+                        wc_insert = """
+                                        INSERT INTO wellness_coordinator (employee_id, area_of_expertise, coordinator_credentials)
+                                        VALUES (%s, %s, %s)
+                                    """
+                        
+                        cursor.execute(wc_insert,(
+                                       request.form.get('employee_id'),
+                                       request.form.get('area_of_expertise'),
+                                       request.form.get('coordinator_credentials')))
+                        
+                        con.commit()
+
+            except Exception as e:
+                print(f"An error occurred in add_employee routing: {e}")
+                flash("error")
+                return render_template('add_employee.html')
+            finally:
+                con.close()
+
+            if verify_employee(request.form.get('employee_id')):
+                flash('Success!')
+                return render_template('add_employee.html')
+            else:
+                flash('Validation Error: 243')
+                return render_template('add_employee.html')
+    else:
+        return render_template('add_employee.html')
 
 @app.route('/delete_employee')
 def delete_employee():
