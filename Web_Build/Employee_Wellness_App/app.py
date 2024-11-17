@@ -259,7 +259,19 @@ def enroll_employee():
 # 
 @app.route('/add_wellness_program')
 def add_wellness_program():
-    return render_template('add_wellness_program.html')
+    """
+    
+    UNFINISHED - Delete Coordinator "Area of Expertise" , "Coordinator Credentials" From frontend
+
+    Requirements
+        Program Details     - Program Name, Start Date, End Date, Type
+        Coordinator Details - Coordinator ID
+    
+    """
+    if request.method == 'POST':
+        pass
+    else: # GET
+        return render_template('add_wellness_program.html')
 
 
 @app.route('/view_health_metric')
