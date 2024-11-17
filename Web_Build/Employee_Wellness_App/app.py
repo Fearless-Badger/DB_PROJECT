@@ -7,101 +7,6 @@ app = Flask(__name__)
 app.config.from_object(Config)
 app.secret_key = app.config['SECRET_KEY']
 
-# Create Connection
-def get_db_connection():
-    return pymysql.connect(
-        host = app.config['DB_HOST'],
-        user = app.config['DB_USER'],
-        password = app.config['DB_PASSWORD'],
-        db = app.config['DB_NAME'],
-        cursorclass=pymysql.cursors.DictCursor
-    )
-
-# This function returns true if the credentials correspond to a coordinator in the database, false otherwise
-def verify_coordinator(email, id_num, cred):
-    con = get_db_connection()
-    result = False
-
-    try:
-        with con.cursor() as cursor:
-            query = """
-                    SELECT e.employee_id, e.work_email, wc.coordinator_credentials 
-                        FROM employee e
-                        JOIN wellness_coordinator wc ON e.employee_id = wc.employee_id
-                        WHERE e.work_email = %s AND e.employee_id = %s AND e.role = 'coordinator' AND wc.coordinator_credentials = %s
-                    """
-            cursor.execute(query, (email, id_num, cred))
-            row = cursor.fetchone()
-
-            if row and row['work_email'] == email and int(row['employee_id']) == int(id_num) and row['coordinator_credentials'] == cred:
-                result = True
-            else:
-                print("Coordinator Authentication failed in verify_coordinator")
-
-    except Exception as e:
-        print(f"An error occurred in verify_coordinator: {e}")
-        result = False
-    
-    finally:
-        con.close()
-    
-    return result
-
-
-
-# This funcion returns true if the credentials provided correspond to a secretary in the databse, false otehrwise
-def verify_secretary(email, id_num):
-    con = get_db_connection()
-    result = False
-
-    try:
-        with con.cursor() as cursor:
-            query = """
-                        SELECT employee_id, work_email, role 
-                        FROM employee 
-                        WHERE work_email = %s AND employee_id = %s AND role = 'secretary'
-                    """
-            cursor.execute(query, (email, id_num))
-            row = cursor.fetchone()
-
-            if row and row['work_email'] == email and int(row['employee_id']) == int(id_num):
-                result = True
-            else:
-                print("Failed at line 67 in verify_secretary")
-    except Exception as e:
-        print(f"An error occurred in verify_secretary: {e}")
-        result = False
-    finally:
-        con.close()
-    return result
-
-
-# Returns True if employee exists in DB with provided id_num
-def verify_employee(id_num):
-    con = get_db_connection()
-    result = False
-    try:
-        with con.cursor() as cursor:
-            query = """
-                        SELECT employee_id 
-                        FROM employee
-                        WHERE employee_id = %s
-                    """
-            cursor.execute(query, (id_num))
-            if cursor.fetchone():
-                result = True
-            else:
-                result = False
-    except Exception as e:
-        print(f"An error occurred in verify_employee: {e}")
-        result = False
-    finally:
-        con.close()
-    return result
-    
-
-
-
 
 
 #START HERE
@@ -163,7 +68,6 @@ def employees():
     finally:
         con.close()                                                                                  # Always use 'finally' to ensure DB connection gets closed
 
-# Not yet implemented
 @app.route('/secretary_home')
 def secretary_home():
     return render_template('secretary_home.html')
@@ -257,7 +161,7 @@ def enroll_employee():
 
 # Build & Implement
 # 
-@app.route('/add_wellness_program')
+@app.route('/add_wellness_program', methods = ['GET', 'POST'])
 def add_wellness_program():
     """
     
@@ -266,10 +170,67 @@ def add_wellness_program():
     Requirements
         Program Details     - Program Name, Start Date, End Date, Type
         Coordinator Details - Coordinator ID
+
+        
+    ARGS PASSED - 
+    program_name
+    program_type
+    start_date
+    end_date
+
+    coordinator_id
+    program ID - USING FRONTEND "Area of Expertise"
     
     """
     if request.method == 'POST':
-        pass
+        
+        program_name   = request.form.get('program_name')
+        program_type   = request.form.get('program_type')
+        start_date     = request.form.get('start_date')
+        end_date       = request.form.get('end_date')
+        coordinator_id = request.form.get('coordinator_id')
+        program_id     = request.form.get('area_of_expertise')
+
+        id_number_available = not verify_program(program_id)
+
+        if not id_number_available:
+            flash("That Program ID number is taken!")
+            return render_template('add_wellness_program.html')
+        if id_number_available:
+            con = get_db_connection()
+            try:
+                with con.cursor() as cursor:
+                    query = """
+                                INSERT INTO wellness_program(program_id, employee_id, end_date, program_name, start_date, type)
+                                VALUES (%s, %s, %s, %s, %s, %s)
+                            """
+                    
+                    cursor.execute(query, (program_id, coordinator_id, 
+                                           end_date, program_name, 
+                                           start_date, program_type))
+                    con.commit()
+
+                    query_2 = """
+                                INSERT INTO coordinated_by(employee_id, program_id)
+                                VALUES (%s, %s)
+                              """
+                    
+                    cursor.execute(query_2, (coordinator_id, program_id))
+
+                    con.commit()
+
+            except Exception as e:
+                print(f"An error occurred in routing for add_wellness_program : {e}")
+                flash("Routing Error - Check MySQL Server Status")
+            finally:
+                con.close()
+
+        if verify_program(program_id):
+            flash('Success!')
+            return render_template('add_wellness_program.html')
+        else: # Insertion unsuccessful
+            flash('Validation error : add_wellness_program Routing')
+            return render_template('add_wellness_program.html')
     else: # GET
         return render_template('add_wellness_program.html')
 
@@ -287,6 +248,7 @@ def view_health_metric():
     return render_template('view_health_metric.html')
 
 
+# DELETING - DO NOT BUILD
 @app.route('/create_health_metric')
 def create_health_metric():
     """
@@ -357,3 +319,127 @@ def successful_program():
     """
     return render_template('successful_program.html')
 
+
+
+
+
+
+
+
+
+
+
+# Create Connection
+def get_db_connection():
+    return pymysql.connect(
+        host = app.config['DB_HOST'],
+        user = app.config['DB_USER'],
+        password = app.config['DB_PASSWORD'],
+        db = app.config['DB_NAME'],
+        cursorclass=pymysql.cursors.DictCursor
+    )
+
+# This function returns true if the credentials correspond to a coordinator in the database, false otherwise
+def verify_coordinator(email, id_num, cred):
+    con = get_db_connection()
+    result = False
+
+    try:
+        with con.cursor() as cursor:
+            query = """
+                    SELECT e.employee_id, e.work_email, wc.coordinator_credentials 
+                        FROM employee e
+                        JOIN wellness_coordinator wc ON e.employee_id = wc.employee_id
+                        WHERE e.work_email = %s AND e.employee_id = %s AND e.role = 'coordinator' AND wc.coordinator_credentials = %s
+                    """
+            cursor.execute(query, (email, id_num, cred))
+            row = cursor.fetchone()
+
+            if row and row['work_email'] == email and int(row['employee_id']) == int(id_num) and row['coordinator_credentials'] == cred:
+                result = True
+            else:
+                print("Coordinator Authentication failed in verify_coordinator")
+
+    except Exception as e:
+        print(f"An error occurred in verify_coordinator: {e}")
+        result = False
+    
+    finally:
+        con.close()
+    
+    return result
+
+
+
+# This funcion returns true if the credentials provided correspond to a secretary in the databse, false otehrwise
+def verify_secretary(email, id_num):
+    con = get_db_connection()
+    result = False
+
+    try:
+        with con.cursor() as cursor:
+            query = """
+                        SELECT employee_id, work_email, role 
+                        FROM employee 
+                        WHERE work_email = %s AND employee_id = %s AND role = 'secretary'
+                    """
+            cursor.execute(query, (email, id_num))
+            row = cursor.fetchone()
+
+            if row and row['work_email'] == email and int(row['employee_id']) == int(id_num):
+                result = True
+            else:
+                print("Failed at line 67 in verify_secretary")
+    except Exception as e:
+        print(f"An error occurred in verify_secretary: {e}")
+        result = False
+    finally:
+        con.close()
+    return result
+
+
+# Returns True if employee exists in DB with provided id_num
+def verify_employee(id_num):
+    con = get_db_connection()
+    result = False
+    try:
+        with con.cursor() as cursor:
+            query = """
+                        SELECT employee_id 
+                        FROM employee
+                        WHERE employee_id = %s
+                    """
+            cursor.execute(query, (id_num))
+            if cursor.fetchone():
+                result = True
+            else:
+                result = False
+    except Exception as e:
+        print(f"An error occurred in verify_employee: {e}")
+        result = False
+    finally:
+        con.close()
+    return result
+    
+
+def verify_program(program_id):
+    con = get_db_connection()
+    result = False
+    try:
+        with con.cursor() as cursor:
+            query = """
+                        SELECT program_id
+                        FROM wellness_program
+                        WHERE program_id = %s
+                    """
+            cursor.execute(query, (program_id))
+            if cursor.fethcone():
+                result = True
+            else:
+                result = False
+    except Exception as e:
+        print(f"An error occurred in verify_program : {e}")
+        result = False
+    finally:
+        con.close()
+    return result
