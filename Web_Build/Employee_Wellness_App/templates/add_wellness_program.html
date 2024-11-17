@@ -110,11 +110,20 @@
             }
         }
     </style>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <ul class="flashes">
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    {% endwith %}
 </head>
 <body>
     <div class="form-container">
         <h1>Add Wellness Program</h1>
-        <form action="/submit_program" method="post">
+        <form action="/add_wellness_program" method="post">
             <!-- Program Details -->
             <fieldset>
                 <legend>Program Details</legend>
