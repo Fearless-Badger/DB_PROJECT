@@ -1,39 +1,119 @@
-<!-- templates/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Page</title>
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <ul class = "flashes">
-            {% for message in messages %}
-                <li>{{message}}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
-    {% endwith %}
+    <title>Employee Wellness App - Login</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Link to external CSS file -->
+    <style>
+        /* Basic Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Body Styling */
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('https://images.unsplash.com/photo-1547919307-1ecb10702e6f?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzZ8fGd5bXxlbnwwfHwwfHx8MA%3D%3D');
+            background-size: cover;
+            background-position: center;
+            color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            padding: 20px;
+        }
+        
+        /* Container Styling */
+        .container {
+            background-color: rgba(241, 241, 241, 0.4); /* White background with transparency */
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        /* Header Styling Login to Your Account*/
+        h1 {
+            margin-bottom: 20px;
+            color: black;
+        }
+
+        /* Form Styling */
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            text-align: left;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        /*LOGIN BUTTON*/
+        input[type="submit"] {
+            padding: 10px;
+            font-size: 16px;
+            background-color: black;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        input[type="submit"]:hover {
+            background-color: rgb(65, 65, 63);
+        }
+
+        /* Flash Messages */
+        .flashes {
+            list-style-type: none;
+            margin: 20px 0;
+            padding: 0;
+            color: red;
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <nav>
-            <a href="{{ url_for('secretary_home') }}">Secretary</a>
-            <a href="{{ url_for('coordinator_home') }}">Coordinator</a>
-            <a href="{{url_for('employees') }}">Employees</a>
-        </nav>
-    </header>
-    <div class="content">
-        <h1>Welcome to the Employee Wellness App</h1>
-        <p>This application allows you to manage employees, wellness programs, and health metrics.</p>
+    <div class="container">
+        <h1>Login to Your Account</h1>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul class="flashes">
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        {% endwith %}
+        <form name="login-form" action="/" method="post">
+            <label for="email">Email Address</label>
+            <input id="email" name="email-address" type="text" required placeholder="e.g., john.doe@example.com">
+            
+            <label for="id-number">Identification Number</label>
+            <input id="id-number" name="ID Number" type="password" required placeholder="e.g., 12345">
+            
+            <label for="credentials">Coordinator Credentials (if applicable)</label>
+            <input id="credentials" name="credentials" type="password" placeholder="Optional">
+            
+            <input type="submit" value="Login">
+        </form>
     </div>
-    <form name="login-form" action = '/' method = 'post'>
-        <label>Email Address</label>
-        <input name="email-address" type = "text" required>
-        <label>Identification</label>
-        <input name="ID Number" type = "password" required>
-        <label>Coordinator Credentials</label>
-        <input name = "credentials" type = "password">
-        <input type = "submit" value = "Login">
-    </form>
+
 </body>
+</html>
