@@ -40,7 +40,6 @@ def login():
 
         #session['user'] = 0 # replace with role for employee, if using sessions
 
-
         if user_authenticated and is_coordinator:
             return render_template('coordinator_home.html')
         elif user_authenticated:
@@ -248,7 +247,7 @@ def view_health_metric():
     return render_template('view_health_metric.html')
 
 
-# DELETING - DO NOT BUILD
+# Build - for employees only
 @app.route('/create_health_metric')
 def create_health_metric():
     """
@@ -305,6 +304,7 @@ def health_highlight():
     """
     return render_template('health_highlight.html')
 
+# DELETE
 @app.route('/successful_program')
 def successful_program():
     """
