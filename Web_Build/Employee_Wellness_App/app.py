@@ -160,6 +160,14 @@ def enroll_employee():
 
 # Build & Implement
 # 
+# 
+# TO-DO : 
+# DELETE "Coordinator_Credentials" From frontend. it is not needed
+# CHANGE "Area of Expertise" TO "Coordinator ID" on frontend
+# ADJUST flash messages display location
+# 
+# micah - 
+# ADD    coordinator ID input validation
 @app.route('/add_wellness_program', methods = ['GET', 'POST'])
 def add_wellness_program():
     """
@@ -178,7 +186,7 @@ def add_wellness_program():
     end_date
 
     coordinator_id
-    program ID - USING FRONTEND "expertise"
+    program ID             - USING FRONTEND "expertise"
     
     """
     if request.method == 'POST':
@@ -191,11 +199,16 @@ def add_wellness_program():
         program_id     = int(request.form.get('expertise'))
 
         id_number_available = not verify_program(program_id)
+        valid_coord = verify_coordinator_alt(coordinator_id)
 
         if not id_number_available:
             flash("That Program ID number is taken!")
             return render_template('add_wellness_program.html')
-        if id_number_available:
+        elif not valid_coord:
+            flash("Coordinator ID must be valid!")
+            return render_template('add_wellness_program.html')
+
+        if id_number_available and valid_coord:
             con = get_db_connection()
             try:
                 with con.cursor() as cursor:
@@ -461,3 +474,28 @@ def get_type(program_type):
         "Other" : "bmi"
     }
     return master_dict.get(program_type, "bmi")
+
+def verify_coordinator_alt(emp_id):
+    con = get_db_connection()
+    result = False
+    try: 
+        with con.cursor() as cursor:
+            query = """
+                        SELECT employee_id
+                        FROM wellness_coordinator
+                        WHERE employee_id = %s
+                    """
+            cursor.execute(query, (emp_id))
+            if cursor.fetchone():
+                result = True
+    except Exception as e:
+        print(f"Invalid : Determined in verify_coordinator function call : {e}")
+    finally:
+        con.close()
+    return result
+
+
+
+# Add "verify coordinator_alt(employee_id)" for /add_wellness_program
+# Complete input validation for adding a program
+# It must check coordinator is a valid coordinator
