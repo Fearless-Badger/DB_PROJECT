@@ -267,6 +267,8 @@ def view_enrollment_list():
     """
     return render_template('view_enrollment_list.html')
 
+
+# Maybe
 @app.route('/view_department_breakdown')
 def view_department_breakdown():
     """
