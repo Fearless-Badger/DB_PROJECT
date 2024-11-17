@@ -163,11 +163,11 @@ def enroll_employee():
 # 
 # TO-DO : 
 # DELETE "Coordinator_Credentials" From frontend. it is not needed
-# CHANGE "Area of Expertise" TO "Coordinator ID" on frontend
+# CHANGE "Area of Expertise" TO "Program ID" on frontend. The "Area of Expertise" field is currently used to pass the "program_id" to the backend
 # ADJUST flash messages display location
 # 
 # micah - 
-# ADD    coordinator ID input validation
+# validate input dates(low priority)
 @app.route('/add_wellness_program', methods = ['GET', 'POST'])
 def add_wellness_program():
     """
