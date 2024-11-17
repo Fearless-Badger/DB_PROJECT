@@ -76,6 +76,7 @@ def verify_secretary(email, id_num):
     return result
 
 
+# Returns True if employee exists in DB with provided id_num
 def verify_employee(id_num):
     con = get_db_connection()
     result = False
@@ -239,39 +240,108 @@ def add_employee():
     else:
         return render_template('add_employee.html')
 
+#   Build & Implement
+# - Only the workers or secretaries may be deleted using this tool
 @app.route('/delete_employee')
 def delete_employee():
     return render_template('delete_employee.html')
 
+# Build & Implement
+# Get the employee ID
+#         Employee email
+#         Program ID
+#         Program Name
 @app.route('/enroll_employee')
 def enroll_employee():
     return render_template('enroll_employee.html')
 
+# Build & Implement
+# 
 @app.route('/add_wellness_program')
 def add_wellness_program():
     return render_template('add_wellness_program.html')
 
+
 @app.route('/view_health_metric')
 def view_health_metric():
+    """
+        To be built
+
+        Return data meant to fill a table
+        with ALL health metrics for the specified employee
+
+        Requirements: Get the employee name and employee ID number
+    """
     return render_template('view_health_metric.html')
+
 
 @app.route('/create_health_metric')
 def create_health_metric():
+    """
+    DO NOT BUILD - Planning on DELETING this page
+    """
     return render_template('create_health_metric.html')
+
 
 @app.route('/view_enrollment_list')
 def view_enrollment_list():
+    """
+    Return list of all employees enrolled in a specific program.
+    Employee fname, lname, department, and work email should be returned
+    and displayed on a table
+
+    Requirements: Program ID, Program Name
+    """
     return render_template('view_enrollment_list.html')
 
 @app.route('/view_department_breakdown')
 def view_department_breakdown():
+    """
+    To Be built
+
+    Requirements: DepartmentID
+
+    Returns a list of all employees in the department.
+
+    Optional Goal : 
+        - return the names of the wellness programs that employees may be enrolled in                
+    """
+
     return render_template('view_department_breakdown.html')
 
 @app.route('/health_highlight')
 def health_highlight():
+    """
+    
+    Requirements : None
+
+    Returns two employees who have shown exceptional
+    Health improvements in their metrics.
+
+    The employee fname, lname should be displayed.
+    Select the metrics that have improved the most,
+    and display the "before" and "after" metric. 
+    
+    ONLY the improved metric(s) should be displayed.
+
+    Optional goals: 
+        - Display the delta value for each improved metric
+        - 
+
+    """
     return render_template('health_highlight.html')
 
 @app.route('/successful_program')
 def successful_program():
+    """
+    
+    Requirements : None
+
+    Returns : Information program with significant 
+              health improvements in enrolled employees
+
+    Goals :  TBD
+
+    """
     return render_template('successful_program.html')
 
