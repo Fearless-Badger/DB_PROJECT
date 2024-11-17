@@ -178,17 +178,17 @@ def add_wellness_program():
     end_date
 
     coordinator_id
-    program ID - USING FRONTEND "Area of Expertise"
+    program ID - USING FRONTEND "expertise"
     
     """
     if request.method == 'POST':
         
-        program_name   = request.form.get('program_name')
-        program_type   = request.form.get('program_type')
-        start_date     = request.form.get('start_date')
-        end_date       = request.form.get('end_date')
-        coordinator_id = request.form.get('coordinator_id')
-        program_id     = request.form.get('area_of_expertise')
+        program_name   = str(request.form.get('program_name'))
+        program_type   = str(request.form.get('program_type'))
+        start_date     = str(request.form.get('start_date'))
+        end_date       = str(request.form.get('end_date'))
+        coordinator_id = int(request.form.get('coordinator_id'))
+        program_id     = int(request.form.get('expertise'))
 
         id_number_available = not verify_program(program_id)
 
@@ -206,7 +206,7 @@ def add_wellness_program():
                     
                     cursor.execute(query, (program_id, coordinator_id, 
                                            end_date, program_name, 
-                                           start_date, program_type))
+                                           start_date, get_type(program_type)))
                     con.commit()
 
                     query_2 = """
@@ -221,6 +221,7 @@ def add_wellness_program():
             except Exception as e:
                 print(f"An error occurred in routing for add_wellness_program : {e}")
                 flash("Routing Error - Check MySQL Server Status")
+                return render_template('add_wellness_program.html')
             finally:
                 con.close()
 
@@ -365,6 +366,7 @@ def verify_coordinator(email, id_num, cred):
     except Exception as e:
         print(f"An error occurred in verify_coordinator: {e}")
         result = False
+        return render_template('add_wellness_program.html')
     
     finally:
         con.close()
@@ -435,7 +437,7 @@ def verify_program(program_id):
                         WHERE program_id = %s
                     """
             cursor.execute(query, (program_id))
-            if cursor.fethcone():
+            if cursor.fetchone():
                 result = True
             else:
                 result = False
@@ -445,3 +447,17 @@ def verify_program(program_id):
     finally:
         con.close()
     return result
+
+
+def get_type(program_type):
+    master_dict = {
+        "Bmi Reduction Program" : "bmi",
+        "Blood Pressure Monitoring" : "blood_pressure",
+        "Heart Rate Control" : "heart_rate",
+        "Cholesterol Management" : "cholesterol",
+        "Mental Health Session" : "heart_rate",
+        "Nutrition Program" : "bmi",
+        "Fitness Challenge" : "bmi",
+        "Other" : "bmi"
+    }
+    return master_dict.get(program_type, "bmi")
