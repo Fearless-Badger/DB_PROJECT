@@ -145,6 +145,11 @@ def add_employee():
 
 #   Build & Implement
 # - Only the workers or secretaries may be deleted using this tool
+#
+#
+# TO-DO : 
+# Validate the input using the function "verify_coordinator_alt" to first check if the employee ID
+# Belongs to a coordinator. Provide the user feedback is the employee ID belongs to a coordinator. - Micah
 @app.route('/delete_employee', methods=['GET', 'POST'])
 def delete_employee():
     if request.method == 'POST':
@@ -302,6 +307,9 @@ def create_health_metric():
     return render_template('create_health_metric.html')
 
 
+"""
+needs to handle a GET request, not just post - Micah
+"""
 @app.route('/view_enrollment_list')
 def view_enrollment_list():
     """
@@ -330,7 +338,7 @@ def view_enrollment_list():
         con.close()  # Ensure the connection is closed
 
 
-# Maybe
+# "No data available for department breakdown." - Micah
 @app.route('/view_department_breakdown')
 def view_department_breakdown():
     """
@@ -494,6 +502,7 @@ def verify_employee(id_num):
     return result
     
 
+# return true if program exists with ID
 def verify_program(program_id):
     con = get_db_connection()
     result = False
@@ -516,7 +525,7 @@ def verify_program(program_id):
         con.close()
     return result
 
-
+# return DB program type according to selection
 def get_type(program_type):
     master_dict = {
         "Bmi Reduction Program" : "bmi",
@@ -530,6 +539,7 @@ def get_type(program_type):
     }
     return master_dict.get(program_type, "bmi")
 
+# True if employee ID belongs to a coordinator
 def verify_coordinator_alt(emp_id):
     con = get_db_connection()
     result = False
