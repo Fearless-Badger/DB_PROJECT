@@ -56,28 +56,6 @@ def login():
     else: #GET
         return render_template('login.html')
 
-# Return true if employee is a worker, false otherwise
-def employee_login_helper(email, id_num):
-    con = get_db_connection()
-    result = False
-    try:
-        with con.cursor() as cursor:
-            Role_Query        = """
-                                    SELECT role
-                                    FROM employee
-                                    WHERE work_email = %s
-                                    AND employee_id = %s
-                                """
-            cursor.execute(Role_Query, (email, id_num))
-            role_row = cursor.fetchone()
-            if role_row and role_row['role'] == 'worker':
-                result = True
-    except Exception as e:
-        print(f"An error occurred in employee_login_helper: {e}")
-    finally:
-        con.close()
-    return result
-
 # Return a list of all employees
 @app.route('/employees')                                                                             # route app 
 def employees():
@@ -521,7 +499,27 @@ def verify_coordinator_alt(emp_id):
         con.close()
     return result
 
-
+# Return true if employee is a worker, false otherwise
+def employee_login_helper(email, id_num):
+    con = get_db_connection()
+    result = False
+    try:
+        with con.cursor() as cursor:
+            Role_Query        = """
+                                    SELECT role
+                                    FROM employee
+                                    WHERE work_email = %s
+                                    AND employee_id = %s
+                                """
+            cursor.execute(Role_Query, (email, id_num))
+            role_row = cursor.fetchone()
+            if role_row and role_row['role'] == 'worker':
+                result = True
+    except Exception as e:
+        print(f"An error occurred in employee_login_helper: {e}")
+    finally:
+        con.close()
+    return result
 
 
 
