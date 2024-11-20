@@ -19,6 +19,7 @@
             background-color: #f4f4f9;
             color: #333;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
@@ -110,17 +111,17 @@
             }
         }
     </style>
+</head>
+<body>
     {% with messages = get_flashed_messages() %}
     {% if messages %}
         <ul class="flashes">
             {% for message in messages %}
-                <li>{{ message }}</li>
+                <h4>{{ message }}</h4>
             {% endfor %}
         </ul>
     {% endif %}
     {% endwith %}
-</head>
-<body>
     <div class="form-container">
         <h1>Add Wellness Program</h1>
         <form action="/add_wellness_program" method="post">
@@ -153,16 +154,14 @@
 
             <!-- Coordinator Details -->
             <fieldset>
-                <legend>Coordinator Details</legend>
+                <legend>Authorization Details</legend>
 
                 <label for="coordinator_id">Coordinator ID:</label>
                 <input type="number" id="coordinator_id" name="coordinator_id" required placeholder="e.g., 103">
 
-                <label for="expertise">Area of Expertise:</label>
+                <label for="expertise">Program ID:</label>
                 <input type="text" id="expertise" name="expertise" required placeholder="e.g., Fitness, Nutrition">
 
-                <label for="credentials">Coordinator Credentials:</label>
-                <input type="text" id="credentials" name="credentials" required placeholder="e.g., CERTFIT">
             </fieldset>
 
             <!-- Submit Button -->
