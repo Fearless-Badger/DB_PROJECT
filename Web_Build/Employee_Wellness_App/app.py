@@ -19,6 +19,7 @@ def login():
 
         is_coordinator = False
         user_authenticated = False
+        is_worker = False
 
         if identification_num and email:
 
@@ -34,22 +35,47 @@ def login():
                 user_authenticated = is_coordinator
             else:
                 user_authenticated = verify_secretary(email, int(identification_num))
+                if user_authenticated == False:
+                    user_authenticated = employee_login_helper(email, identification_num)
+                    is_worker = True
         else:
             flash("You must provide your ID number and email address")
             return redirect(url_for('login'))
 
-        #session['user'] = 0 # replace with role for employee, if using sessions
-
         if user_authenticated and is_coordinator:
             return render_template('coordinator_home.html')
-        elif user_authenticated:
+        elif user_authenticated and (is_worker == False):
             return render_template('secretary_home.html')
+        elif user_authenticated and is_worker:
+            return render_template('create_health_metric.html')
         else:
             flash('Incorrect Credentials')
             return redirect(url_for('login'))
 
     else: #GET
         return render_template('login.html')
+
+# Return true if employee is a worker, false otherwise
+def employee_login_helper(email, id_num):
+    con = get_db_connection()
+    result = False
+    try:
+        with con.cursor as cursor:
+            Role_Query        = """
+                                    SELECT role
+                                    FROM employee
+                                    WHERE work_email = %s
+                                    AND employee_id = %s
+                                """
+            cursor.execute(Role_Query, (email, id_num))
+            role = cursor.fetchone()
+            if role == 'worker':
+                result = True
+    except Exception as e:
+        print(f"An error occurred in employee_login_helper: {e}")
+    finally:
+        con.close()
+    return result
 
 # Return a list of all employees
 @app.route('/employees')                                                                             # route app 
@@ -493,6 +519,8 @@ def verify_coordinator_alt(emp_id):
     finally:
         con.close()
     return result
+
+
 
 
 
