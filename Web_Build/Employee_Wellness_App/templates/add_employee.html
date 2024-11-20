@@ -1,15 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <ul class = "flashes">
-            {% for message in messages %}
-                <li>{{message}}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
-    {% endwith %}
     <meta charset="UTF-8">
     <title>Activate Your Account</title>
     <link href="https://fonts.googleapis.com/css2?family=Ample+Display&display=swap" rel="stylesheet">
@@ -118,6 +109,15 @@
 <body>
 
 <div class="header-box">
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <ul class = "flashes">
+            {% for message in messages %}
+                <h4>{{message}}</h4>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    {% endwith %}
     <h2>Activate Your Account</h2>
 </div>
 
