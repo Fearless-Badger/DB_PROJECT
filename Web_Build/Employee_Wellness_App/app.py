@@ -37,7 +37,8 @@ def login():
                 user_authenticated = verify_secretary(email, int(identification_num))
                 if user_authenticated == False:
                     user_authenticated = employee_login_helper(email, identification_num)
-                    is_worker = True
+                    if user_authenticated:
+                        is_worker = True
         else:
             flash("You must provide your ID number and email address")
             return redirect(url_for('login'))
@@ -60,7 +61,7 @@ def employee_login_helper(email, id_num):
     con = get_db_connection()
     result = False
     try:
-        with con.cursor as cursor:
+        with con.cursor() as cursor:
             Role_Query        = """
                                     SELECT role
                                     FROM employee
@@ -68,8 +69,8 @@ def employee_login_helper(email, id_num):
                                     AND employee_id = %s
                                 """
             cursor.execute(Role_Query, (email, id_num))
-            role = cursor.fetchone()
-            if role == 'worker':
+            role_row = cursor.fetchone()
+            if role_row and role_row['role'] == 'worker':
                 result = True
     except Exception as e:
         print(f"An error occurred in employee_login_helper: {e}")
@@ -432,7 +433,7 @@ def verify_secretary(email, id_num):
             if row and row['work_email'] == email and int(row['employee_id']) == int(id_num):
                 result = True
             else:
-                print("Failed at line 67 in verify_secretary")
+                print("Employee not a secretary : DEBUG : in verify_secretary")
     except Exception as e:
         print(f"An error occurred in verify_secretary: {e}")
         result = False
