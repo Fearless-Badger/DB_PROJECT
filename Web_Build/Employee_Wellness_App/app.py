@@ -310,33 +310,36 @@ def create_health_metric():
 """
 needs to handle a GET request, not just post - Micah
 """
-@app.route('/view_enrollment_list')
+@app.route('/view_enrollment_list', methods=['GET', 'POST'])
 def view_enrollment_list():
-    """
-    Return list of all employees enrolled in a specific program.
-    Employee fname, lname, department, and work email should be returned
-    and displayed on a table.
-
-    Requirements: Program ID, Program Name
-    """
-    con = get_db_connection()  # Establish database connection
+    program_id = request.args.get('program_id')  # Get program ID from query parameters
+    con = get_db_connection()
     try:
         with con.cursor() as cursor:
-            # Query to fetch employee details along with program information
-            cursor.execute("""
-                SELECT e.employee_id, e.fname, e.lname, e.department, e.work_email, p.program_id, p.program_name
-                FROM enrollment en
-                JOIN employee e ON en.employee_id = e.employee_id
-                JOIN wellness_program p ON en.program_id = p.program_id
-            """)
-            enrollment_list = cursor.fetchall()  # Fetch all enrollment records
+            if program_id:
+                # Query to fetch employee details for a specific program
+                cursor.execute("""
+                    SELECT e.employee_id, e.fname, e.lname, e.department, e.work_email, p.program_id, p.program_name
+                    FROM enrollment en
+                    JOIN employee e ON en.employee_id = e.employee_id
+                    JOIN wellness_program p ON en.program_id = p.program_id
+                    WHERE p.program_id = %s
+                """, (program_id,))
+            else:
+                # Fetch all enrollments if no program ID is specified
+                cursor.execute("""
+                    SELECT e.employee_id, e.fname, e.lname, e.department, e.work_email, p.program_id, p.program_name
+                    FROM enrollment en
+                    JOIN employee e ON en.employee_id = e.employee_id
+                    JOIN wellness_program p ON en.program_id = p.program_id
+                """)
+            enrollment_list = cursor.fetchall()
             return render_template('view_enrollment_list.html', enrollment_list=enrollment_list)
     except Exception as e:
         print(f"An error occurred: {e}")
         return render_template('view_enrollment_list.html', error="Could not fetch enrollment list.")
     finally:
-        con.close()  # Ensure the connection is closed
-
+        con.close()
 
 # "No data available for department breakdown." - Micah
 @app.route('/view_department_breakdown')
@@ -347,11 +350,11 @@ def view_department_breakdown():
     con = get_db_connection()  # Establish database connection
     try:
         with con.cursor() as cursor:
-            # Query to fetch department breakdown
+            # Query to fetch department breakdown using department_id as department name
             cursor.execute("""
-                SELECT department, COUNT(employee_id) AS employee_count
+                SELECT department_id AS department_name, COUNT(employee_id) AS employee_count
                 FROM employee
-                GROUP BY department
+                GROUP BY department_id;
             """)
             department_breakdown = cursor.fetchall()  # Fetch all department records
             return render_template('view_department_breakdown.html', department_breakdown=department_breakdown)
@@ -360,7 +363,7 @@ def view_department_breakdown():
         return render_template('view_department_breakdown.html', error="Could not fetch department breakdown.")
     finally:
         con.close()  # Ensure the connection is closed
-
+        
 @app.route('/health_highlight')
 def health_highlight():
     """

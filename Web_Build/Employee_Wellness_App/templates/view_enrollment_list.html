@@ -84,4 +84,12 @@
                     <td>{{ enrollment.fname }}</td>
                     <td>{{ enrollment.lname }}</td>
                     <td>{{ enrollment.program_name }}</td>
-                </
+                </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p>No enrollments found.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

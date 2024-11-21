@@ -44,21 +44,21 @@
         <h1>Department Breakdown</h1>
 
         {% if department_breakdown %}
-            <table>
-                <tr>
-                    <th>Department</th>
-                    <th>Employee Count</th>
-                </tr>
-                {% for department, employee_count in department_breakdown %}
-                <tr>
-                    <td>{{ department }}</td>
-                    <td>{{ employee_count }}</td>
-                </tr>
-                {% endfor %}
-            </table>
-        {% else %}
-            <p>No data available for department breakdown.</p>
-        {% endif %}
+    <table>
+        <tr>
+            <th>Department</th>
+            <th>Employee Count</th>
+        </tr>
+        {% for department in department_breakdown %}
+        <tr>
+            <td>{{ department.department_name }}</td>
+            <td>{{ department.employee_count }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% else %}
+    <p>No data available for department breakdown.</p>
+{% endif %}
     </div>
 </body>
 </html>
