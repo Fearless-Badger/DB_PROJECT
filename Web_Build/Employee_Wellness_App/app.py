@@ -253,33 +253,186 @@ def add_wellness_program():
         return render_template('add_wellness_program.html')
 
 
-@app.route('/view_health_metric')
+@app.route('/view_health_metric', methods=['GET'])
 def view_health_metric():
     """
-        Frontend Built
-
-        Return data meant to fill a table
-        with ALL health metrics for the specified employee
-
-        Requirements: Get the employee ID number
-
-        RETURN :
-
-        "metrics" an object with "date_measured", "cholesterol_levels", "resting_heart_rate",
-        "blood_pressure_systolic", "blood_pressure.diastolic", "bmi"
-
-        
+    Retrieve health metrics with optional employee filtering.
+    - If employee_id is provided (from session or query param), show only that employee's metrics.
+    - Otherwise, show paginated metrics for all employees.
     """
-    return render_template('view_health_metric.html')
+    # Number of records per page (for pagination)
+    records_per_page = 20
 
+    # Get current page and employee_id from query parameters/session
+    page = request.args.get('page', default=1, type=int)
+    employee_id = session.get('employee_id') or request.args.get('employee_id', type=int)
+    search_term = request.args.get('search', default='', type=str).strip()
+    offset = (page - 1) * records_per_page
 
-# Build - for employees only
-@app.route('/create_health_metric')
+    con = get_db_connection()
+    try:
+        with con.cursor() as cursor:
+            if employee_id:
+                # Query to fetch metrics for a specific employee
+                query_metrics = """
+                    SELECT e.name AS employee_name, h.date_measured, 
+                           h.cholesterol_levels, h.resting_heart_rate,
+                           h.blood_pressure_systolic, h.blood_pressure_diastolic, h.bmi
+                    FROM employees e
+                    JOIN health_metrics h ON e.employee_id = h.employee_id
+                    WHERE e.employee_id = %s
+                    ORDER BY h.date_measured DESC
+                """
+                cursor.execute(query_metrics, (employee_id,))
+                metrics = cursor.fetchall()
+
+                # Count total metrics entries for the specific employee
+                query_count = """
+                    SELECT COUNT(*) 
+                    FROM health_metrics 
+                    WHERE employee_id = %s
+                """
+                cursor.execute(query_count, (employee_id,))
+                employee_count = cursor.fetchone()[0]
+            else:
+                # Query to fetch metrics for all employees with pagination
+                query_metrics = """
+                    SELECT e.name AS employee_name, h.date_measured, 
+                           h.cholesterol_levels, h.resting_heart_rate,
+                           h.blood_pressure_systolic, h.blood_pressure_diastolic, h.bmi
+                    FROM employees e
+                    JOIN health_metrics h ON e.employee_id = h.employee_id
+                    ORDER BY h.date_measured DESC
+                    LIMIT %s OFFSET %s
+                """
+                cursor.execute(query_metrics, (records_per_page, offset))
+            else: search_term:
+                # Query to fetch metrics filtered by employee name (with pagination)
+                query_metrics = """
+                    SELECT e.name AS employee_name, h.date_measured, 
+                           h.cholesterol_levels, h.resting_heart_rate,
+                           h.blood_pressure_systolic, h.blood_pressure_diastolic, h.bmi
+                    FROM employees e
+                    JOIN health_metrics h ON e.employee_id = h.employee_id
+                    WHERE e.name ILIKE %s
+                    ORDER BY h.date_measured DESC
+                    LIMIT %s OFFSET %s
+                """
+                cursor.execute(query_metrics, (f"%{search_term}%", records_per_page, offset))
+            
+                metrics = cursor.fetchall()
+
+                # Count total employees (filtered or not)
+            if search_term:
+                query_count = """
+                    SELECT COUNT(*)
+                    FROM employees e
+                    WHERE e.name ILIKE %s
+                """
+                cursor.execute(query_count, (f"%{search_term}%",))
+            else:
+                query_count = "SELECT COUNT(*) FROM employees"
+                cursor.execute(query_count)
+
+            employee_count = cursor.fetchone()[0]
+            
+        # Pass the data to the template
+        return render_template(
+            'view_health_metric.html',
+            metrics=metrics,
+            employee_count=employee_count,
+            current_page=page,
+            search_term=search_term,
+            is_individual_view=bool(employee_id)  # Flag to distinguish views in template
+        )
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        flash("Error fetching health metrics. Please try again later.")
+        return render_template('view_health_metric.html', metrics=[], employee_count=0, current_page=1)
+    finally:
+        con.close()
+
+@app.route('/create_health_metric', methods=['GET', 'POST'])
 def create_health_metric():
     """
-    DO NOT BUILD - Planning on DELETING this page
+    Route to allow wellness coordinators or secretaries to create health metrics for employees.
     """
-    return render_template('create_health_metric.html')
+
+    # Check if the user is logged in
+    if 'employee_id' not in session or session['role'] != 'coordinator':
+        flash("You do not have the necessary permissions to access this page.")
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        # Get the combined input for employee name or ID
+        employee_name_or_id = request.form.get('employee_name_or_id')
+
+        if not employee_name_or_id:
+            flash("Please provide an employee name or ID.")
+            return render_template('create_health_metric.html')
+
+        # Determine if input is numeric (ID) or a string (name)
+        con = get_db_connection()
+        try:
+            with con.cursor() as cursor:
+                if employee_name_or_id.isdigit():
+                    # Input is an ID
+                    query = "SELECT * FROM employee WHERE employee_id = %s"
+                    cursor.execute(query, (employee_name_or_id,))
+                else:
+                    # Input is a name
+                    query = "SELECT * FROM employee WHERE fname LIKE %s OR lname LIKE %s"
+                    cursor.execute(query, (f"%{employee_name_or_id}%", f"%{employee_name_or_id}%"))
+
+                employee = cursor.fetchone()
+
+                if not employee:
+                    flash("No employee found matching the provided name or ID.")
+                    return render_template('create_health_metric.html')
+
+                # Extract the employee ID from the found record
+                employee_id = employee['employee_id']
+
+                # Gather the health metric data from the form
+                cholesterol = request.form.get('cholesterol_levels')
+                resting_heart_rate = request.form.get('resting_heart_rate')
+                systolic_bp = request.form.get('systolic_blood_pressure')
+                diastolic_bp = request.form.get('diastolic_blood_pressure')
+                bmi = request.form.get('bmi')
+
+                # Validate the inputs (ensure numbers are valid where applicable)
+                try:
+                    cholesterol = float(cholesterol) if cholesterol else None
+                    resting_heart_rate = float(resting_heart_rate) if resting_heart_rate else None
+                    systolic_bp = int(systolic_bp) if systolic_bp else None
+                    diastolic_bp = int(diastolic_bp) if diastolic_bp else None
+                    bmi = float(bmi) if bmi else None
+                except ValueError:
+                    flash("Please enter valid values for health metrics.")
+                    return render_template('create_health_metric.html')
+
+                # Insert the health metric data into the database
+                insert_query = """
+                    INSERT INTO health_metrics (employee_id, cholesterol_levels, resting_heart_rate, 
+                                                blood_pressure_systolic, blood_pressure_diastolic, bmi)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                """
+                cursor.execute(insert_query, (employee_id, cholesterol, resting_heart_rate, systolic_bp, diastolic_bp, bmi))
+                con.commit()
+
+                flash("Health metrics successfully added for the employee.")
+                return redirect(url_for('view_health_metric'))
+
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            flash("An error occurred while processing the request. Please try again.")
+            return render_template('create_health_metric.html')
+        finally:
+            con.close()
+
+    else:  # GET request: display the form to create health metrics
+        return render_template('create_health_metric.html')
 
 
 @app.route('/view_enrollment_list')
