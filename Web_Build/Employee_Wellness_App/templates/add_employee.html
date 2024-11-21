@@ -81,6 +81,17 @@
 
 <div class="form-container">
     <h2>Add Employee</h2>
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <ul class="flashes">
+            {% for message in messages %}
+                <h4>{{ message }}</h4>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    {% endwith %}
+
     <form action="/add_employee" method="post">
         <div class="form-group">
             <label for="employee_id">Employee ID:</label>
