@@ -5,7 +5,6 @@
     <title>Activate Your Account</title>
     <link href="https://fonts.googleapis.com/css2?family=Ample+Display&display=swap" rel="stylesheet">
     <style>
-        /* General Styles */
         body {
             font-family: 'Ample Display', sans-serif;
             background-color: #19193b;
@@ -13,11 +12,15 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            position: relative;
+            padding: 20px;
+            box-sizing: border-box;
+        }           
+
+        html {
+            overflow-y: auto; /* Ensures vertical scrolling is always available */
         }
 
-        /* Form Container */
+
         .form-container {
             background-color: #ffffff;
             border-radius: 20px;
@@ -26,14 +29,14 @@
             box-shadow: 0 2px 8px rgba(63, 69, 81, 0.16);
         }
 
-        /* Header Styling */
+        
         h2 {
             text-align: center;
             color: #000000;
             margin-bottom: 20px;
         }
 
-        /* Form Fields */
+        
         .form-group {
             margin-bottom: 1rem;
         }
@@ -56,7 +59,7 @@
             margin-bottom: 15px;
         }
 
-        /* Button */
+        
         button[type="submit"] {
             width: 100%;
             padding: 10px;
