@@ -262,6 +262,13 @@ def view_health_metric():
         with ALL health metrics for the specified employee
 
         Requirements: Get the employee ID number
+
+        RETURN :
+
+        "metrics" an object with "date_measured", "cholesterol_levels", "resting_heart_rate",
+        "blood_pressure_systolic", "blood_pressure.diastolic", "bmi"
+
+        
     """
     return render_template('view_health_metric.html')
 
