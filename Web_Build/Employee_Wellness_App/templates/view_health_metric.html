@@ -4,4 +4,51 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Health Metric</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
 </head>
+<body>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul class="flashes">
+                {% for message in messages %}
+                    <h4>{{ message }}</h4>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+    <h3>View all health metric entries for the specified employee.</h3>
+    <form name = "view_metric" action = "/view_health_metric" method = "post">
+        <label for = "employee_ID">Employee ID: </label>
+        <input type = "number" id = "employee_ID" name = "employee_ID" required>
+
+        <button type = "submit">Submit</button>
+    </form>
+    <table>
+        <tr>
+            <th>Date Measured</th>
+            <th>Cholesterol</th>
+            <th>Resting BPM</th>
+            <th>Systolic BP</th>
+            <th>Diastolic BP</th>
+            <th>Body Mass Index</th>
+        </tr>
+        {% for metric in metrics %}
+        <tr>
+            <td>{{ metric.date_measured }}</td>
+            <td>{{ metric.cholesterol_levels }}</td>
+            <td>{{ metric.resting_heart_rate }}</td>
+            <td>{{ metric.blood_pressure_systolic }}</td>
+            <td>{{ metric.blood_pressure.diastolic }}</td>
+            <td>{{ metric.bmi }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
