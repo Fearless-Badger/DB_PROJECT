@@ -256,12 +256,12 @@ def add_wellness_program():
 @app.route('/view_health_metric')
 def view_health_metric():
     """
-        To be built
+        Frontend Built
 
         Return data meant to fill a table
         with ALL health metrics for the specified employee
 
-        Requirements: Get the employee name and employee ID number
+        Requirements: Get the employee ID number
     """
     return render_template('view_health_metric.html')
 

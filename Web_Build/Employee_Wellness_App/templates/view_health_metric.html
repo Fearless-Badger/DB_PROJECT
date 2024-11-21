@@ -24,7 +24,31 @@
             </ul>
         {% endif %}
     {% endwith %}
+    <h3>View all health metric entries for the specified employee.</h3>
     <form name = "view_metric" action = "/view_health_metric" method = "post">
-        
+        <label for = "employee_ID">Employee ID: </label>
+        <input type = "number" id = "employee_ID" name = "employee_ID" required>
+
+        <button type = "submit">Submit</button>
     </form>
+    <table>
+        <tr>
+            <th>Date Measured</th>
+            <th>Cholesterol</th>
+            <th>Resting BPM</th>
+            <th>Systolic BP</th>
+            <th>Diastolic BP</th>
+            <th>Body Mass Index</th>
+        </tr>
+        {% for metric in metrics %}
+        <tr>
+            <td>{{ metric.date_measured }}</td>
+            <td>{{ metric.cholesterol_levels }}</td>
+            <td>{{ metric.resting_heart_rate }}</td>
+            <td>{{ metric.blood_pressure_systolic }}</td>
+            <td>{{ metric.blood_pressure.diastolic }}</td>
+            <td>{{ metric.bmi }}</td>
+        </tr>
+        {% endfor %}
+    </table>
 </body>
