@@ -3,52 +3,185 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Health Metric</title>
+    <title>View Health Metrics</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        header {
+            width: 100%;
+            padding: 10px 0;
             display: flex;
-            flex-direction: column;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
+            background-color: #007bff;
+            color: white;
+        }
+        header img {
+            height: 40px;
+        }
+        .header-title {
+            display: flex;
+            align-items: center;
+        }
+        .header-title h1 {
+            margin: 0 10px;
+        }
+        .main-title {
+            margin: 20px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .main-title h3 {
+            margin: 0;
+        }
+        .main-title .employee-count {
+            font-size: 14px;
+            color: grey;
+        }
+        .main-title .controls {
+            display: flex;
+            align-items: center;
+        }
+        .main-title .controls select,
+        .main-title .controls input {
+            margin-left: 10px;
+            padding: 8px;
+            font-size: 14px;
+        }
+        .table-container {
+            width: 95%;
+            overflow-x: auto;
+            margin: 20px auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        table th, table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+        table th {
+            background-color: #007bff;
+            color: white;
+        }
+        .actions button {
+            padding: 5px 10px;
+            margin: 0 5px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .actions .edit-btn {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+        }
+        .actions .delete-btn {
+            background-color: #f44336;
+            color: white;
+            border: none;
+        }
+        .pagination {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .pagination button {
+            padding: 10px 15px;
+            margin: 0 5px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <ul class="flashes">
-                {% for message in messages %}
-                    <h4>{{ message }}</h4>
-                {% endfor %}
-            </ul>
-        {% endif %}
-    {% endwith %}
-    <h3>View all health metric entries for the specified employee.</h3>
-    <form name = "view_metric" action = "/view_health_metric" method = "post">
-        <label for = "employee_ID">Employee ID: </label>
-        <input type = "number" id = "employee_ID" name = "employee_ID" required>
+    <!-- Header with Logo and Company Name -->
+    <header>
+        <div class="header-title">
+           <img src="https://media.istockphoto.com/id/1320470492/vector/vector-yoga-zen-logo-hand-on-heart.jpg?s=612x612&w=0&k=20&c=F_kB5lc77ML2Eua31wrBxyKAWNfcyvQwuv5Ac0crnc0=" alt="Company Logo">
+<!-- change logo later^ !!!! -->
 
-        <button type = "submit">Submit</button>
-    </form>
-    <table>
-        <tr>
-            <th>Date Measured</th>
-            <th>Cholesterol</th>
-            <th>Resting BPM</th>
-            <th>Systolic BP</th>
-            <th>Diastolic BP</th>
-            <th>Body Mass Index</th>
-        </tr>
-        {% for metric in metrics %}
-        <tr>
-            <td>{{ metric.date_measured }}</td>
-            <td>{{ metric.cholesterol_levels }}</td>
-            <td>{{ metric.resting_heart_rate }}</td>
-            <td>{{ metric.blood_pressure_systolic }}</td>
-            <td>{{ metric.blood_pressure_diastolic }}</td>
-            <td>{{ metric.bmi }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+            <h1>Corporate Wellness</h1>
+        </div>
+    </header>
+
+    <!-- Main Title with Employee Count, Search, Sort, and Page Switch -->
+    <div class="main-title">
+        <h3>Employee Health Metrics</h3>
+        <div class="employee-count">
+            <!-- Dynamically display number of employees -->
+            <span>{{ employee_count }} employees</span>
+        </div>
+        <div class="controls">
+            <!-- Search Box -->
+            <form method="GET" action="/view_health_metric">
+        <input type="text" id="search" name="search" placeholder="Search by name">
+        <button type="submit">Search</button>
+            <!-- Sort Dropdown -->
+            <label for="sort">Sort:</label>
+            <select id="sort">
+                <option value="newest">Newest</option>
+                <option value="oldest">Oldest</option>
+                <option value="az">A-Z</option>
+                <option value="za">Z-A</option>
+            </select>
+            <!-- Pagination Controls -->
+            <div class="pagination">
+                <button id="prev-page" onclick="changePage(-1)">Previous</button>
+                <button id="next-page" onclick="changePage(1)">Next</button>
+            </div>
+            </form>
+    </div>
+    </div>
+   
+    <!-- Health Metrics Table -->
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Date Measured</th>
+                    <th>Cholesterol Levels</th>
+                    <th>Resting Heart Rate</th>
+                    <th>Systolic Blood Pressure</th>
+                    <th>Diastolic Blood Pressure</th>
+                    <th>BMI</th>
+                </tr>
+            </thead>
+            <tbody>
+            <!-- Loop through metrics and display 20 rows -->
+                {% for metric in metrics %}
+                <tr> 
+                    <td>{{ metric.employee_name }}</td>
+                    <td>{{ metric.date_measured }}</td>
+                    <td>{{ metric.cholesterol_levels }}</td>
+                    <td>{{ metric.resting_heart_rate }}</td>
+                    <td>{{ metric.systolic_blood_pressure }}</td>
+                    <td>{{ metric.diastolic_blood_pressure }}</td>
+                    <td>{{ metric.bmi }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        function changePage(direction) {
+    let currentPage = parseInt(sessionStorage.getItem('currentPage') || 1);
+    let nextPage = currentPage + direction;
+    sessionStorage.setItem('currentPage', nextPage);
+    window.location.href = `/view_health_metric?page=${nextPage}`;
+            {% if search_term %}
+    <h3>Showing results for "{{ search_term }}"</h3>
+{% endif %}
+}
+    </script>
 </body>
+</html>
