@@ -4,11 +4,80 @@
     <meta charset="UTF-8">
     <title>Activate Your Account</title>
     <link href="https://fonts.googleapis.com/css2?family=Ample+Display&display=swap" rel="stylesheet">
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Ample Display', sans-serif;
+            background-color: #19193b;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* Form Container */
+        .form-container {
+            background-color: #ffffff;
+            border-radius: 20px;
+            padding: 2rem;
+            width: 400px;
+            box-shadow: 0 2px 8px rgba(63, 69, 81, 0.16);
+        }
+
+        /* Header Styling */
+        h2 {
+            text-align: center;
+            color: #000000;
+            margin-bottom: 20px;
+        }
+
+        /* Form Fields */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group input[type="email"],
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+            margin-bottom: 15px;
+        }
+
+        /* Button */
+        button[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            background-color: #000000;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-size: 1em;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #585656f8;
+        }
+    </style>
 </head>
 <body>
 
-
-<div class="form-box">
+<div class="form-container">
+    <h2>Add Employee</h2>
     <form action="/add_employee" method="post">
         <div class="form-group">
             <label for="employee_id">Employee ID:</label>
@@ -39,7 +108,7 @@
             </select>
         </div>
 
-        <div class="form-group" id="coordinator_fields">
+        <div class="form-group" id="coordinator_fields" style="display: none;">
             <label for="area_of_expertise">Area of Expertise:</label>
             <input type="text" id="area_of_expertise" name="area_of_expertise">
 
