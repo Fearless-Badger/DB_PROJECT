@@ -108,18 +108,6 @@
 </head>
 <body>
 
-<div class="header-box">
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <ul class = "flashes">
-            {% for message in messages %}
-                <h4>{{message}}</h4>
-            {% endfor %}
-        </ul>
-    {% endif %}
-    {% endwith %}
-    <h2>Activate Your Account</h2>
-</div>
 
 <div class="form-box">
     <form action="/add_employee" method="post">
