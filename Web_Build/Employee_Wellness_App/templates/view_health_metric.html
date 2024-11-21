@@ -4,4 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Health Metric</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
 </head>
+<body>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul class="flashes">
+                {% for message in messages %}
+                    <h4>{{ message }}</h4>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+    <form name = "view_metric" action = "/view_health_metric" method = "post">
+        
+    </form>
+</body>
