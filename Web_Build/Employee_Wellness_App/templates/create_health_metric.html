@@ -3,5 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Metric</title>
+    <title>Create Health Metric</title>
+    <style>
+        /* CSS to ensure that each label and input are on separate lines */
+        fieldset label {
+            display: block;
+            margin-bottom: 10px;  /* Adds space below each label */
+        }
+
+        fieldset input {
+            display: block;
+            margin-bottom: 15px;  /* Adds space below each input */
+        }
+    </style>
 </head>
+<body>
+    <header>
+        <h1>Create Health Metric</h1>
+        <p>Please enter the health metrics for the employee.</p>
+    </header>
+
+    <main>
+        <form id="create-health-metric-form" action="/create_health_metric" method="POST">
+            <!-- Employee Information -->
+            <fieldset>
+    <legend>Employee Information</legend>
+    <label for="employee-name-or-id">Employee Name or ID:</label>
+    <input type="text" id="employee-name-or-id" name="employee_name_or_id" placeholder="Enter Name or ID" required>
+</fieldset>
+
+            <!-- Health Metrics -->
+            <fieldset>
+                <legend>Health Metrics</legend>
+                <label for="cholesterol">Cholesterol (mg/dL):</label>
+                <input type="number" id="cholesterol" name="cholesterol_levels" placeholder="e.g., 180" required>
+
+                <label for="resting-heart-rate">Resting Heart Rate (bpm):</label>
+                <input type="number" id="resting-heart-rate" name="resting_heart_rate" placeholder="e.g., 70" required>
+
+                <label for="systolic-blood-pressure">Systolic Blood Pressure (mmHg):</label>
+                <input type="number" id="systolic-blood-pressure" name="systolic_blood_pressure" placeholder="e.g., 120" required>
+
+                <label for="diastolic-blood-pressure">Diastolic Blood Pressure (mmHg):</label>
+                <input type="number" id="diastolic-blood-pressure" name="diastolic_blood_pressure" placeholder="e.g., 80" required>
+
+                <label for="bmi">BMI (kg/m²):</label>
+                <input type="number" id="bmi" name="bmi" step="0.1" placeholder="e.g., 22.5" required>
+            </fieldset>
+
+            <!-- Date -->
+            <fieldset>
+                <legend>Date Measured</legend>
+                <!-- Set the current date using Flask's Jinja2 templating -->
+                <input type="date" id="date-measured" name="date_measured" value="{{ current_date }}" required>
+            </fieldset>
+
+            <!-- Form Buttons -->
+            <div class="form-buttons">
+                <button type="submit" id="submit" class="btn-submit">Submit</button>
+                <button type="button" id="cancel" class="btn-cancel" onclick="window.location.href='/view_health_metrics'">Cancel</button>
+            </div>
+        </form>
+    </main>
+
+    <script src="scripts.js"></script>
+</body>
+</html>
