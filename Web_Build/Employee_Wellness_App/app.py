@@ -378,6 +378,7 @@ def view_department_breakdown():
     finally:
         con.close()  # Ensure the connection is closed
         
+# DELETE - Micah, Samantha
 @app.route('/health_highlight')
 def health_highlight():
     """
