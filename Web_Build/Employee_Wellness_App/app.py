@@ -1,4 +1,5 @@
 #Import Flask, Config file and PyMySQL
+
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from config import Config
 import pymysql
@@ -253,17 +254,61 @@ def add_wellness_program():
         return render_template('add_wellness_program.html')
 
 
-@app.route('/view_health_metric', methods=['GET'])
+@app.route('/view_health_metric', methods=['GET', 'POST'])
 def view_health_metric():
     """
-    Retrieve health metrics with optional employee filtering.
-    - If employee_id is provided (from session or query param), show only that employee's metrics.
-    - Otherwise, show paginated metrics for all employees.
+    Handle GET and POST requests for health metrics.
+    - GET: Retrieve and display health metrics with optional employee filtering.
+    - POST: Add a new health metric or perform specific actions.
     """
     # Number of records per page (for pagination)
     records_per_page = 20
 
-    # Get current page and employee_id from query parameters/session
+    if request.method == 'POST':
+        # Handle the POST request to add a new health metric
+        try:
+            # Retrieve data from the form submission
+            employee_id = request.form.get('employee_id', type=int)
+            date_measured = request.form.get('date_measured', type=str)
+            cholesterol_levels = request.form.get('cholesterol_levels', type=float)
+            resting_heart_rate = request.form.get('resting_heart_rate', type=int)
+            blood_pressure_systolic = request.form.get('blood_pressure_systolic', type=int)
+            blood_pressure_diastolic = request.form.get('blood_pressure_diastolic', type=int)
+            bmi = request.form.get('bmi', type=float)
+
+            # Validate the inputs (basic example)
+            if not all([employee_id, date_measured, cholesterol_levels, resting_heart_rate, 
+                        blood_pressure_systolic, blood_pressure_diastolic, bmi]):
+                flash("All fields are required.", "error")
+                return redirect(url_for('view_health_metric'))
+
+            con = get_db_connection()
+            with con.cursor() as cursor:
+                # Insert the new health metric into the database
+                query_insert = """
+                    INSERT INTO health_metrics 
+                    (employee_id, date_measured, cholesterol_levels, resting_heart_rate,
+                     blood_pressure_systolic, blood_pressure_diastolic, bmi)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """
+                cursor.execute(query_insert, (
+                    employee_id, date_measured, cholesterol_levels, resting_heart_rate,
+                    blood_pressure_systolic, blood_pressure_diastolic, bmi
+                ))
+                con.commit()
+                flash("Health metric added successfully!", "success")
+
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            flash("Error adding health metric. Please try again.", "error")
+
+        finally:
+            con.close()
+
+        # Redirect to the GET view to display updated metrics
+        return redirect(url_for('view_health_metric'))
+    
+    # GET request handling (original code)
     page = request.args.get('page', default=1, type=int)
     employee_id = session.get('employee_id') or request.args.get('employee_id', type=int)
     search_term = request.args.get('search', default='', type=str).strip()
@@ -273,7 +318,6 @@ def view_health_metric():
     try:
         with con.cursor() as cursor:
             if employee_id:
-                # Query to fetch metrics for a specific employee
                 query_metrics = """
                     SELECT e.name AS employee_name, h.date_measured, 
                            h.cholesterol_levels, h.resting_heart_rate,
@@ -286,7 +330,6 @@ def view_health_metric():
                 cursor.execute(query_metrics, (employee_id,))
                 metrics = cursor.fetchall()
 
-                # Count total metrics entries for the specific employee
                 query_count = """
                     SELECT COUNT(*) 
                     FROM health_metrics 
@@ -294,20 +337,7 @@ def view_health_metric():
                 """
                 cursor.execute(query_count, (employee_id,))
                 employee_count = cursor.fetchone()[0]
-            else:
-                # Query to fetch metrics for all employees with pagination
-                query_metrics = """
-                    SELECT e.name AS employee_name, h.date_measured, 
-                           h.cholesterol_levels, h.resting_heart_rate,
-                           h.blood_pressure_systolic, h.blood_pressure_diastolic, h.bmi
-                    FROM employees e
-                    JOIN health_metrics h ON e.employee_id = h.employee_id
-                    ORDER BY h.date_measured DESC
-                    LIMIT %s OFFSET %s
-                """
-                cursor.execute(query_metrics, (records_per_page, offset))
-            else: search_term:
-                # Query to fetch metrics filtered by employee name (with pagination)
+            elif search_term:
                 query_metrics = """
                     SELECT e.name AS employee_name, h.date_measured, 
                            h.cholesterol_levels, h.resting_heart_rate,
@@ -319,39 +349,50 @@ def view_health_metric():
                     LIMIT %s OFFSET %s
                 """
                 cursor.execute(query_metrics, (f"%{search_term}%", records_per_page, offset))
-            
                 metrics = cursor.fetchall()
 
-                # Count total employees (filtered or not)
-            if search_term:
                 query_count = """
                     SELECT COUNT(*)
                     FROM employees e
                     WHERE e.name ILIKE %s
                 """
                 cursor.execute(query_count, (f"%{search_term}%",))
+                employee_count = cursor.fetchone()[0]
             else:
+                query_metrics = """
+                    SELECT e.name AS employee_name, h.date_measured, 
+                           h.cholesterol_levels, h.resting_heart_rate,
+                           h.blood_pressure_systolic, h.blood_pressure_diastolic, h.bmi
+                    FROM employees e
+                    JOIN health_metrics h ON e.employee_id = h.employee_id
+                    ORDER BY h.date_measured DESC
+                    LIMIT %s OFFSET %s
+                """
+                cursor.execute(query_metrics, (records_per_page, offset))
+                metrics = cursor.fetchall()
+
                 query_count = "SELECT COUNT(*) FROM employees"
                 cursor.execute(query_count)
+                employee_count = cursor.fetchone()[0]
 
-            employee_count = cursor.fetchone()[0]
-            
-        # Pass the data to the template
         return render_template(
             'view_health_metric.html',
             metrics=metrics,
             employee_count=employee_count,
             current_page=page,
             search_term=search_term,
-            is_individual_view=bool(employee_id)  # Flag to distinguish views in template
+            is_individual_view=bool(employee_id)
         )
 
     except Exception as e:
         print(f"An error occurred: {e}")
-        flash("Error fetching health metrics. Please try again later.")
+        flash("Error fetching health metrics. Please try again later.", "error")
         return render_template('view_health_metric.html', metrics=[], employee_count=0, current_page=1)
+
     finally:
         con.close()
+
+
 
 @app.route('/create_health_metric', methods=['GET', 'POST'])
 def create_health_metric():
