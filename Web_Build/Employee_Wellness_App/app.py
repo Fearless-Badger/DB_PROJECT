@@ -309,6 +309,8 @@ def create_health_metric():
 
 """
 needs to handle a GET request, not just post - Micah
+
+Provided with a program ID, return contact info for enrolled employees
 """
 @app.route('/view_enrollment_list', methods=['GET', 'POST'])
 def view_enrollment_list():
