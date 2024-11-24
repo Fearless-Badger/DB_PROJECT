@@ -150,9 +150,46 @@ def add_employee():
 
 #   Build & Implement
 # - Only the workers or secretaries may be deleted using this tool
-@app.route('/delete_employee')
+#
+#
+# TO-DO : 
+# Validate the input using the function "verify_coordinator_alt" to first check if the employee ID
+# Belongs to a coordinator. Provide the user feedback is the employee ID belongs to a coordinator. - Micah
+@app.route('/delete_employee', methods=['GET', 'POST'])
 def delete_employee():
-    return render_template('delete_employee.html')
+    if request.method == 'POST':
+        employee_id = request.form.get('employee_id')
+
+        if employee_id:
+            try:
+                employee_id = int(employee_id)  # Convert to integer
+            except ValueError:
+                flash("Employee ID must be a number.")
+                return redirect(url_for('delete_employee'))
+
+            con = get_db_connection()  # Establish database connection
+            try:
+                with con.cursor() as cursor:
+                    # Check if the employee exists
+                    cursor.execute("SELECT * FROM employee WHERE employee_id = %s", (employee_id,))
+                    employee = cursor.fetchone()
+
+                    if employee:
+                        # Delete the employee
+                        cursor.execute("DELETE FROM employee WHERE employee_id = %s", (employee_id,))
+                        con.commit()  # Commit the changes
+                        flash(f'Employee with ID {employee_id} has been deleted successfully.')
+                    else:
+                        flash(f'No employee found with ID {employee_id}.')
+            except Exception as e:
+                print(f"An error occurred while deleting the employee: {e}")
+                flash("An error occurred while trying to delete the employee.")
+            finally:
+                con.close()  # Ensure the connection is closed
+
+            return redirect(url_for('delete_employee'))  # Redirect to the same page after handling the form
+
+    return render_template('delete_employee.html')  # Render the delete employee page for GET request
 
 # Build & Implement
 # Get the employee ID
@@ -282,34 +319,65 @@ def create_health_metric():
     return render_template('create_health_metric.html')
 
 
-@app.route('/view_enrollment_list')
+"""
+needs to handle a GET request, not just post - Micah
+
+Provided with a program ID, return contact info for enrolled employees
+"""
+@app.route('/view_enrollment_list', methods=['GET', 'POST'])
 def view_enrollment_list():
-    """
-    Return list of all employees enrolled in a specific program.
-    Employee fname, lname, department, and work email should be returned
-    and displayed on a table
+    program_id = request.args.get('program_id')  # Get program ID from query parameters
+    con = get_db_connection()
+    try:
+        with con.cursor() as cursor:
+            if program_id:
+                # Query to fetch employee details for a specific program
+                cursor.execute("""
+                    SELECT e.employee_id, e.fname, e.lname, e.department, e.work_email, p.program_id, p.program_name
+                    FROM enrollment en
+                    JOIN employee e ON en.employee_id = e.employee_id
+                    JOIN wellness_program p ON en.program_id = p.program_id
+                    WHERE p.program_id = %s
+                """, (program_id,))
+            else:
+                # Fetch all enrollments if no program ID is specified
+                cursor.execute("""
+                    SELECT e.employee_id, e.fname, e.lname, e.department, e.work_email, p.program_id, p.program_name
+                    FROM enrollment en
+                    JOIN employee e ON en.employee_id = e.employee_id
+                    JOIN wellness_program p ON en.program_id = p.program_id
+                """)
+            enrollment_list = cursor.fetchall()
+            return render_template('view_enrollment_list.html', enrollment_list=enrollment_list)
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return render_template('view_enrollment_list.html', error="Could not fetch enrollment list.")
+    finally:
+        con.close()
 
-    Requirements: Program ID, Program Name
-    """
-    return render_template('view_enrollment_list.html')
-
-
-# Maybe
+# "No data available for department breakdown." - Micah
 @app.route('/view_department_breakdown')
 def view_department_breakdown():
     """
-    To Be built
-
-    Requirements: DepartmentID
-
-    Returns a list of all employees in the department.
-
-    Optional Goal : 
-        - return the names of the wellness programs that employees may be enrolled in                
+    Return a breakdown of departments and their respective employee counts.
     """
-
-    return render_template('view_department_breakdown.html')
-
+    con = get_db_connection()  # Establish database connection
+    try:
+        with con.cursor() as cursor:
+            # Query to fetch department breakdown using department_id as department name
+            cursor.execute("""
+                SELECT department_id AS department_name, COUNT(employee_id) AS employee_count
+                FROM employee
+                GROUP BY department_id;
+            """)
+            department_breakdown = cursor.fetchall()  # Fetch all department records
+            return render_template('view_department_breakdown.html', department_breakdown=department_breakdown)
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return render_template('view_department_breakdown.html', error="Could not fetch department breakdown.")
+    finally:
+        con.close()  # Ensure the connection is closed
+        
 @app.route('/health_highlight')
 def health_highlight():
     """
@@ -451,6 +519,7 @@ def verify_employee(id_num):
     return result
     
 
+# return true if program exists with ID
 def verify_program(program_id):
     con = get_db_connection()
     result = False
@@ -473,7 +542,7 @@ def verify_program(program_id):
         con.close()
     return result
 
-
+# return DB program type according to selection
 def get_type(program_type):
     master_dict = {
         "Bmi Reduction Program" : "bmi",
@@ -487,6 +556,7 @@ def get_type(program_type):
     }
     return master_dict.get(program_type, "bmi")
 
+# True if employee ID belongs to a coordinator
 def verify_coordinator_alt(emp_id):
     con = get_db_connection()
     result = False

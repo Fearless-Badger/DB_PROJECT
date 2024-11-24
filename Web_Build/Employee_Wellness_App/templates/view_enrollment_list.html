@@ -3,5 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enrollment</title>
+    <title>Enrollment List</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ccc;
+        }
+        th {
+            background-color: #5cb85c;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .flashes {
+            list-style-type: none;
+            padding: 0;
+        }
+        .flashes li {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .flashes li.error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+        .flashes li.success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+    </style>
 </head>
+<body>
+    <div class="container">
+        <h1>Enrollment List</h1>
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul class="flashes">
+                {% for message in messages %}
+                    <li class="{% if 'success' in message %}success{% else %}error{% endif %}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        {% endwith %}
+
+        {% if enrollment_list %}
+            <table>
+                <tr>
+                    <th>Employee ID</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Program Name</th>
+                </tr>
+                {% for enrollment in enrollment_list %}
+                <tr>
+                    <td>{{ enrollment.employee_id }}</td>
+                    <td>{{ enrollment.fname }}</td>
+                    <td>{{ enrollment.lname }}</td>
+                    <td>{{ enrollment.program_name }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p>No enrollments found.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

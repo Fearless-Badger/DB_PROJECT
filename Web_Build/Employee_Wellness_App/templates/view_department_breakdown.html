@@ -3,5 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Department</title>
+    <title>Department Breakdown</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ccc;
+        }
+        th {
+            background-color: #5cb85c;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 </head>
+<body>
+    <div class="container">
+        <h1>Department Breakdown</h1>
+
+        {% if department_breakdown %}
+    <table>
+        <tr>
+            <th>Department</th>
+            <th>Employee Count</th>
+        </tr>
+        {% for department in department_breakdown %}
+        <tr>
+            <td>{{ department.department_name }}</td>
+            <td>{{ department.employee_count }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% else %}
+    <p>No data available for department breakdown.</p>
+{% endif %}
+    </div>
+</body>
+</html>
