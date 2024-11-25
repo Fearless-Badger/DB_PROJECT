@@ -8,8 +8,6 @@ app = Flask(__name__)
 app.config.from_object(Config)
 app.secret_key = app.config['SECRET_KEY']
 
-
-
 #START HERE
 @app.route('/', methods = ['GET', 'POST'])
 def login():
@@ -291,79 +289,67 @@ def view_health_metric():
 
 @app.route('/create_health_metric', methods=['GET', 'POST'])
 def create_health_metric():
-    """
-    Route to allow wellness coordinators or secretaries to create health metrics for employees.
-    """
-
+    con = None  # Initialize con variable to avoid UnboundLocalError
     if request.method == 'POST':
-        # Get the combined input for employee name or ID
-        employee_name_or_id = request.form.get('employee_name_or_id')
-
-        if not employee_name_or_id:
-            flash("Please provide an employee name or ID.")
-            return render_template('create_health_metric.html')
-
-        # Determine if input is numeric (ID) or a string (name)
-        con = get_db_connection()
+        # Extracting the data from the form
         try:
+            employee_id = request.form.get('employee_id')  # Expecting employee_id from the form
+            date_measured = request.form.get('date_measured')
+            cholesterol_levels = request.form.get('cholesterol_levels')
+            resting_heart_rate = request.form.get('resting_heart_rate')
+            blood_pressure_systolic = request.form.get('blood_pressure_systolic')
+            blood_pressure_diastolic = request.form.get('blood_pressure_diastolic')
+            bmi = request.form.get('bmi')
+
+            # Validate inputs and handle default values if necessary
+            if not employee_id or not date_measured:
+                flash("Employee ID and Date Measured are required fields.", "danger")
+                return render_template('create_health_metric.html')
+
+            # Convert values to appropriate types if available, otherwise leave as None
+            cholesterol_levels = int(cholesterol_levels) if cholesterol_levels else None
+            resting_heart_rate = int(resting_heart_rate) if resting_heart_rate else None
+            blood_pressure_systolic = int(blood_pressure_systolic) if blood_pressure_systolic else None
+            blood_pressure_diastolic = int(blood_pressure_diastolic) if blood_pressure_diastolic else None
+            bmi = float(bmi) if bmi else None
+
+            # Establish database connection
+            con = get_db_connection()
             with con.cursor() as cursor:
-                if employee_name_or_id.isdigit():
-                    # Input is an ID
-                    query = "SELECT * FROM employee WHERE employee_id = %s"
-                    cursor.execute(query, (employee_name_or_id,))
-                else:
-                    # Input is a name
-                    query = "SELECT * FROM employee WHERE fname LIKE %s OR lname LIKE %s"
-                    cursor.execute(query, (f"%{employee_name_or_id}%", f"%{employee_name_or_id}%"))
+                # Check if the employee ID exists in the employee table
+                cursor.execute('SELECT COUNT(*) FROM employee WHERE employee_id = %s', (employee_id,))
+                result = cursor.fetchone()
 
-                employee = cursor.fetchone()
-
-                if not employee:
-                    flash("No employee found matching the provided name or ID.")
+                if result[0] == 0:
+                    flash("Employee ID does not exist.", "danger")
                     return render_template('create_health_metric.html')
 
-                # Extract the employee ID from the found record
-                employee_id = employee['employee_id']
-
-                # Gather the health metric data from the form
-                cholesterol = request.form.get('cholesterol_levels')
-                resting_heart_rate = request.form.get('resting_heart_rate')
-                systolic_bp = request.form.get('systolic_blood_pressure')
-                diastolic_bp = request.form.get('diastolic_blood_pressure')
-                bmi = request.form.get('bmi')
-
-                # Validate the inputs (ensure numbers are valid where applicable)
-                try:
-                    cholesterol = float(cholesterol) if cholesterol else None
-                    resting_heart_rate = float(resting_heart_rate) if resting_heart_rate else None
-                    systolic_bp = int(systolic_bp) if systolic_bp else None
-                    diastolic_bp = int(diastolic_bp) if diastolic_bp else None
-                    bmi = float(bmi) if bmi else None
-                except ValueError:
-                    flash("Please enter valid values for health metrics.")
-                    return render_template('create_health_metric.html')
-
-                # Insert the health metric data into the database
+                # Insert health metric data into the health_metrics table
                 insert_query = """
-                    INSERT INTO health_metrics (employee_id, cholesterol_levels, resting_heart_rate, 
-                                                blood_pressure_systolic, blood_pressure_diastolic, bmi)
-                    VALUES (%s, %s, %s, %s, %s, %s)
+                INSERT INTO health_metrics (employee_id, date_measured, cholesterol_levels, resting_heart_rate, 
+                                            blood_pressure_systolic, blood_pressure_diastolic, bmi)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
                 """
-                cursor.execute(insert_query, (employee_id, cholesterol, resting_heart_rate, systolic_bp, diastolic_bp, bmi))
-                con.commit()
+                cursor.execute(insert_query, (employee_id, date_measured, cholesterol_levels, resting_heart_rate,
+                                              blood_pressure_systolic, blood_pressure_diastolic, bmi))
 
-                flash("Health metrics successfully added for the employee.")
-                return redirect(url_for('view_health_metric'))
+                # Commit the transaction
+                con.commit()
+                flash("Health metric successfully added.", "success")
 
         except Exception as e:
-            print(f"An error occurred: {e}")
-            flash("An error occurred while processing the request. Please try again.")
-            return render_template('create_health_metric.html')
+            # Rollback in case of an error
+            if con:
+                con.rollback()  # Only call rollback if the connection was established
+            flash(f"Error: {str(e)}", "danger")
         finally:
-            con.close()
+            # Ensure the database connection is always closed
+            if con:
+                con.close()
 
-    else:  # GET request: display the form to create health metrics
-        return render_template('create_health_metric.html')
+        return redirect(url_for('create_health_metric'))  # Redirect back to the same page
+
+    return render_template('create_health_metric.html')  # GET request: render the form
 
 
 @app.route('/view_enrollment_list')
@@ -416,6 +402,7 @@ def health_highlight():
     """
     return render_template('health_highlight.html')
 
+
 # DELETE
 @app.route('/successful_program')
 def successful_program():
@@ -444,10 +431,10 @@ def successful_program():
 # Create Connection
 def get_db_connection():
     return pymysql.connect(
-        host = app.config['DB_HOST'],
-        user = app.config['DB_USER'],
-        password = app.config['DB_PASSWORD'],
-        db = app.config['DB_NAME'],
+        host = app.config['localhost'],
+        user = app.config['root'],
+        password = app.config['Frozenpeach_1'],
+        db = app.config['employee_wellness'],
         cursorclass=pymysql.cursors.DictCursor
     )
 
