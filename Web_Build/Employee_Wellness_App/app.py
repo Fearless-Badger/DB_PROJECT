@@ -254,144 +254,39 @@ def add_wellness_program():
         return render_template('add_wellness_program.html')
 
 
-@app.route('/view_health_metric', methods=['GET', 'POST'])
+@app.route('/view_health_metric')
 def view_health_metric():
-    """
-    Handle GET and POST requests for health metrics.
-    - GET: Retrieve and display health metrics with optional employee filtering.
-    - POST: Add a new health metric or perform specific actions.
-    """
-    # Number of records per page (for pagination)
-    records_per_page = 20
-
-    if request.method == 'POST':
-        # Handle the POST request to add a new health metric
-        try:
-            # Retrieve data from the form submission
-            employee_id = request.form.get('employee_id', type=int)
-            date_measured = request.form.get('date_measured', type=str)
-            cholesterol_levels = request.form.get('cholesterol_levels', type=float)
-            resting_heart_rate = request.form.get('resting_heart_rate', type=int)
-            blood_pressure_systolic = request.form.get('blood_pressure_systolic', type=int)
-            blood_pressure_diastolic = request.form.get('blood_pressure_diastolic', type=int)
-            bmi = request.form.get('bmi', type=float)
-
-            # Validate the inputs (basic example)
-            if not all([employee_id, date_measured, cholesterol_levels, resting_heart_rate, 
-                        blood_pressure_systolic, blood_pressure_diastolic, bmi]):
-                flash("All fields are required.", "error")
-                return redirect(url_for('view_health_metric'))
-
-            con = get_db_connection()
-            with con.cursor() as cursor:
-                # Insert the new health metric into the database
-                query_insert = """
-                    INSERT INTO health_metrics 
-                    (employee_id, date_measured, cholesterol_levels, resting_heart_rate,
-                     blood_pressure_systolic, blood_pressure_diastolic, bmi)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
-                """
-                cursor.execute(query_insert, (
-                    employee_id, date_measured, cholesterol_levels, resting_heart_rate,
-                    blood_pressure_systolic, blood_pressure_diastolic, bmi
-                ))
-                con.commit()
-                flash("Health metric added successfully!", "success")
-
-        except Exception as e:
-            print(f"An error occurred: {e}")
-            flash("Error adding health metric. Please try again.", "error")
-
-        finally:
-            con.close()
-
-        # Redirect to the GET view to display updated metrics
-        return redirect(url_for('view_health_metric'))
-    
-    # GET request handling (original code)
-    page = request.args.get('page', default=1, type=int)
-    employee_id = session.get('employee_id') or request.args.get('employee_id', type=int)
-    search_term = request.args.get('search', default='', type=str).strip()
-    offset = (page - 1) * records_per_page
-
     con = get_db_connection()
     try:
-        with con.cursor() as cursor:
-            if employee_id:
-                query_metrics = """
-                    SELECT e.name AS employee_name, h.date_measured, 
-                           h.cholesterol_levels, h.resting_heart_rate,
-                           h.blood_pressure_systolic, h.blood_pressure_diastolic, h.bmi
-                    FROM employees e
-                    JOIN health_metrics h ON e.employee_id = h.employee_id
-                    WHERE e.employee_id = %s
-                    ORDER BY h.date_measured DESC
-                """
-                cursor.execute(query_metrics, (employee_id,))
-                metrics = cursor.fetchall()
-
-                query_count = """
-                    SELECT COUNT(*) 
+        with con.cursor(pymysql.cursors.DictCursor) as cursor:
+            # Query to fetch latest health metrics
+            query = """
+                SELECT fname AS 'First Name', 
+                       lname AS 'Last Name', 
+                       resting_heart_rate AS 'Resting BPM', 
+                       cholesterol_levels AS 'Cholesterol', 
+                       blood_pressure_systolic AS 'Sys', 
+                       blood_pressure_diastolic AS 'DBP', 
+                       bmi AS 'BMI',
+                       date_measured AS 'Date Measured'
+                FROM employee
+                LEFT JOIN health_metrics
+                ON employee.employee_id = health_metrics.employee_id
+                WHERE date_measured = (
+                    SELECT MAX(date_measured) 
                     FROM health_metrics 
-                    WHERE employee_id = %s
-                """
-                cursor.execute(query_count, (employee_id,))
-                employee_count = cursor.fetchone()[0]
-            elif search_term:
-                query_metrics = """
-                    SELECT e.name AS employee_name, h.date_measured, 
-                           h.cholesterol_levels, h.resting_heart_rate,
-                           h.blood_pressure_systolic, h.blood_pressure_diastolic, h.bmi
-                    FROM employees e
-                    JOIN health_metrics h ON e.employee_id = h.employee_id
-                    WHERE e.name ILIKE %s
-                    ORDER BY h.date_measured DESC
-                    LIMIT %s OFFSET %s
-                """
-                cursor.execute(query_metrics, (f"%{search_term}%", records_per_page, offset))
-                metrics = cursor.fetchall()
-
-                query_count = """
-                    SELECT COUNT(*)
-                    FROM employees e
-                    WHERE e.name ILIKE %s
-                """
-                cursor.execute(query_count, (f"%{search_term}%",))
-                employee_count = cursor.fetchone()[0]
-            else:
-                query_metrics = """
-                    SELECT e.name AS employee_name, h.date_measured, 
-                           h.cholesterol_levels, h.resting_heart_rate,
-                           h.blood_pressure_systolic, h.blood_pressure_diastolic, h.bmi
-                    FROM employees e
-                    JOIN health_metrics h ON e.employee_id = h.employee_id
-                    ORDER BY h.date_measured DESC
-                    LIMIT %s OFFSET %s
-                """
-                cursor.execute(query_metrics, (records_per_page, offset))
-                metrics = cursor.fetchall()
-
-                query_count = "SELECT COUNT(*) FROM employees"
-                cursor.execute(query_count)
-                employee_count = cursor.fetchone()[0]
-
-        return render_template(
-            'view_health_metric.html',
-            metrics=metrics,
-            employee_count=employee_count,
-            current_page=page,
-            search_term=search_term,
-            is_individual_view=bool(employee_id)
-        )
-
+                    WHERE health_metrics.employee_id = employee.employee_id
+                )
+                ORDER BY date_measured DESC;
+            """
+            cursor.execute(query)
+            health_metrics = cursor.fetchall()
+        return render_template('view_health_metric.html', health_metrics=health_metrics)
     except Exception as e:
         print(f"An error occurred: {e}")
-        flash("Error fetching health metrics. Please try again later.", "error")
-        return render_template('view_health_metric.html', metrics=[], employee_count=0, current_page=1)
-
+        return render_template('view_health_metric.html', health_metrics=[])
     finally:
         con.close()
-
 
 
 @app.route('/create_health_metric', methods=['GET', 'POST'])
@@ -399,11 +294,6 @@ def create_health_metric():
     """
     Route to allow wellness coordinators or secretaries to create health metrics for employees.
     """
-
-    # Check if the user is logged in
-    if 'employee_id' not in session or session['role'] != 'coordinator':
-        flash("You do not have the necessary permissions to access this page.")
-        return redirect(url_for('login'))
 
     if request.method == 'POST':
         # Get the combined input for employee name or ID

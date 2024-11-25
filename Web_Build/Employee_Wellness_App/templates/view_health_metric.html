@@ -1,179 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>View Health Metrics</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f9f9f9;
-        }
-        header {
-            width: 100%;
-            padding: 10px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #007bff;
-            color: white;
-        }
-        header img {
-            height: 40px;
-        }
-        .header-title {
-            display: flex;
-            align-items: center;
-        }
-        .header-title h1 {
-            margin: 0 10px;
-        }
-        .main-title {
-            margin: 20px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .main-title h3 {
-            margin: 0;
-        }
-        .main-title .employee-count {
-            font-size: 14px;
-            color: grey;
-        }
-        .main-title .controls {
-            display: flex;
-            align-items: center;
-        }
-        .main-title .controls select,
-        .main-title .controls input {
-            margin-left: 10px;
-            padding: 8px;
-            font-size: 14px;
-        }
-        .table-container {
-            width: 95%;
-            overflow-x: auto;
-            margin: 20px auto;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background-color: white;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        table th, table td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: center;
-        }
-        table th {
-            background-color: #007bff;
-            color: white;
-        }
-        .actions button {
-            padding: 5px 10px;
-            margin: 0 5px;
-            font-size: 12px;
-            cursor: pointer;
-        }
-        .actions .edit-btn {
-            background-color: #4caf50;
-            color: white;
-            border: none;
-        }
-        .actions .delete-btn {
-            background-color: #f44336;
-            color: white;
-            border: none;
-        }
-        .pagination {
-            margin-top: 20px;
-            display: flex;
-            justify-content: flex-end;
-        }
-        .pagination button {
-            padding: 10px 15px;
-            margin: 0 5px;
-            cursor: pointer;
-        }
-    </style>
-</head>
-<body>
-    <!-- Header with Logo and Company Name -->
-    <header>
-        <div class="header-title">
-           <img src="https://media.istockphoto.com/id/1320470492/vector/vector-yoga-zen-logo-hand-on-heart.jpg?s=612x612&w=0&k=20&c=F_kB5lc77ML2Eua31wrBxyKAWNfcyvQwuv5Ac0crnc0=" alt="Company Logo">
-            <h1>Corporate Wellness</h1>
-        </div>
-    </header>
+{% extends 'base.html' %}
 
-    <!-- Main Title with Employee Count, Search, Sort, and Page Switch -->
-    <div class="main-title">
-        <h3>Employee Health Metrics</h3>
-        <div class="employee-count">
-            <!-- Dynamically display number of employees -->
-            <span>{{ employee_count }} employees</span>
-        </div>
-        <div class="controls">
-            <!-- Search Box -->
-            <form method="GET" action="{{ url_for('view_health_metric') }}">
-                <input type="text" id="search" name="search" placeholder="Search by name" value="{{ search_term }}">
-                <button type="submit">Search</button>
-            </form>
-            <!-- Sort Dropdown -->
-            <label for="sort">Sort:</label>
-            <select id="sort" name="sort">
-                <option value="newest" {% if request.args.get('sort') == 'newest' %}selected{% endif %}>Newest</option>
-                <option value="oldest" {% if request.args.get('sort') == 'oldest' %}selected{% endif %}>Oldest</option>
-                <option value="az" {% if request.args.get('sort') == 'az' %}selected{% endif %}>A-Z</option>
-                <option value="za" {% if request.args.get('sort') == 'za' %}selected{% endif %}>Z-A</option>
-            </select>
-        </div>
-    </div>
+{% block title %}
+View Health Metrics
+{% endblock %}
 
-    <!-- Health Metrics Table -->
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Date Measured</th>
-                    <th>Cholesterol Levels</th>
-                    <th>Resting Heart Rate</th>
-                    <th>Systolic Blood Pressure</th>
-                    <th>Diastolic Blood Pressure</th>
-                    <th>BMI</th>
-                </tr>
-            </thead>
-            <tbody>
-            <!-- Loop through metrics and display rows -->
-                {% for metric in metrics %}
-                <tr> 
-                    <td>{{ metric.employee_name }}</td>
-                    <td>{{ metric.date_measured }}</td>
-                    <td>{{ metric.cholesterol_levels }}</td>
-                    <td>{{ metric.resting_heart_rate }}</td>
-                    <td>{{ metric.systolic_blood_pressure }}</td>
-                    <td>{{ metric.diastolic_blood_pressure }}</td>
-                    <td>{{ metric.bmi }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Pagination Controls -->
-    <div class="pagination">
-        {% if current_page > 1 %}
-            <a href="{{ url_for('view_health_metric', page=current_page - 1) }}"><button>Previous</button></a>
-        {% endif %}
-        total_pages = (employee_count + records_per_page - 1) // records_per_page
-            <a href="{{ url_for('view_health_metric', page=current_page + 1) }}"><button>Next</button></a>
-        {% endif %}
-    </div>
-
-</body>
-</html>
+{% block content %}
+<h1>Health Metrics</h1>
+<table border="1">
+    <thead>
+        <tr>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Resting BPM</th>
+            <th>Cholesterol</th>
+            <th>Systolic BP</th>
+            <th>Diastolic BP</th>
+            <th>BMI</th>
+            <th>Date Measured</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for metric in health_metrics %}
+        <tr>
+            <td>{{ metric['First Name'] }}</td>
+            <td>{{ metric['Last Name'] }}</td>
+            <td>{{ metric['Resting BPM'] }}</td>
+            <td>{{ metric['Cholesterol'] }}</td>
+            <td>{{ metric['Sys'] }}</td>
+            <td>{{ metric['DBP'] }}</td>
+            <td>{{ metric['BMI'] }}</td>
+            <td>{{ metric['Date Measured'] }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
