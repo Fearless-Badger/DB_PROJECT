@@ -37,55 +37,43 @@
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-        .flashes {
-            list-style-type: none;
-            padding: 0;
-        }
-        .flashes li {
-            margin: 10px 0;
-            padding: 10px;
-            border-radius: 5px;
-        }
-        .flashes li.error {
-            background-color: #f2dede;
-            color: #a94442;
-        }
-        .flashes li.success {
-            background-color: #dff0d8;
-            color: #3c763d;
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Enrollment List</h1>
 
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <ul class="flashes">
-                {% for message in messages %}
-                    <li class="{% if 'success' in message %}success{% else %}error{% endif %}">{{ message }}</li>
+        <form method="POST" action="{{ url_for('view_enrollment_list') }}">
+            <label for="program_id">Select Program:</label>
+            <select name="program_id" id="program_id">
+                <option value="">-- Select a Program --</option>
+                {% for pid in program_ids %}
+                    <option value="{{ pid }}">{{ pid }}</option>
                 {% endfor %}
-            </ul>
-        {% endif %}
-        {% endwith %}
+            </select>
+            <button type="submit">View</button>
+        </form>
 
         {% if enrollment_list %}
             <table>
-                <tr>
-                    <th>Employee ID</th>
-                    <th>First Name</th>
-                    <th>Last Name</th>
-                    <th>Program Name</th>
-                </tr>
-                {% for enrollment in enrollment_list %}
-                <tr>
-                    <td>{{ enrollment.employee_id }}</td>
-                    <td>{{ enrollment.fname }}</td>
-                    <td>{{ enrollment.lname }}</td>
-                    <td>{{ enrollment.program_name }}</td>
-                </tr>
-                {% endfor %}
+                <thead>
+                    <tr>
+                        <th>Employee ID</th>
+                        <th>Employee Name</th>
+                        <th>Program ID</th>
+                        <th>Program Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for enrollment in enrollment_list %}
+                        <tr>
+                            <td>{{ enrollment['Employee ID'] }}</td>
+                            <td>{{ enrollment['Employee Name'] }}</td>
+                            <td>{{ enrollment['Program ID'] }}</td>
+                            <td>{{ enrollment['Program Name'] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
             </table>
         {% else %}
             <p>No enrollments found.</p>
