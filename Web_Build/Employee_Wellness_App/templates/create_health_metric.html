@@ -5,6 +5,15 @@
 {% block content %}
 <div class="container">
     <h1>Create Health Metrics</h1>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul class="flashes">
+                {% for message in messages %}
+                    <li class="{% if 'success' in message %}success{% else %}error{% endif %}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
     <p>Please enter the health metrics for the employee.</p>
     <form method="POST" action="{{ url_for('create_health_metric') }}">
         <fieldset>

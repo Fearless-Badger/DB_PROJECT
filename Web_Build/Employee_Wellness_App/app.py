@@ -335,8 +335,12 @@ def view_health_metric():
 
 @app.route('/create_health_metric', methods=['GET', 'POST'])
 def create_health_metric():
+    debug = True
     con = None  # Initialize con variable to avoid UnboundLocalError
     if request.method == 'POST':
+        if debug : 
+            print("meow1")
+            print(f"Form Data: {request.form}")
         # Extracting the data from the form
         try:
             employee_id = request.form.get('employee_id')  # Expecting employee_id from the form
@@ -346,12 +350,13 @@ def create_health_metric():
             blood_pressure_systolic = request.form.get('blood_pressure_systolic')
             blood_pressure_diastolic = request.form.get('blood_pressure_diastolic')
             bmi = request.form.get('bmi')
+            
 
             # Validate inputs and handle default values if necessary
             if not employee_id or not date_measured:
                 flash("Employee ID and Date Measured are required fields.", "danger")
                 return render_template('create_health_metric.html')
-
+            if debug : print("meow2")
             # Convert values to appropriate types if available, otherwise leave as None
             cholesterol_levels = int(cholesterol_levels) if cholesterol_levels else None
             resting_heart_rate = int(resting_heart_rate) if resting_heart_rate else None
@@ -361,6 +366,12 @@ def create_health_metric():
 
             # Establish database connection
             con = get_db_connection()
+
+            if debug and con:
+                print("Connection Recieved")
+            elif debug and not con:
+                print("Connection unsuccessful")
+
             with con.cursor() as cursor:
                 # Check if the employee ID exists in the employee table
                 cursor.execute('SELECT COUNT(*) FROM employee WHERE employee_id = %s', (employee_id,))
@@ -376,18 +387,25 @@ def create_health_metric():
                                             blood_pressure_systolic, blood_pressure_diastolic, bmi)
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
                 """
+                if debug:
+                    print(f"Query: {insert_query}")
+                    print(f"Parameters: {employee_id=}, {date_measured=}, {cholesterol_levels=}, {resting_heart_rate=}, "
+                          f"{blood_pressure_systolic=}, {blood_pressure_diastolic=}, {bmi=}")
+    
                 cursor.execute(insert_query, (employee_id, date_measured, cholesterol_levels, resting_heart_rate,
                                               blood_pressure_systolic, blood_pressure_diastolic, bmi))
 
                 # Commit the transaction
                 con.commit()
                 flash("Health metric successfully added.", "success")
+                if debug : print("meow3")
 
         except Exception as e:
             # Rollback in case of an error
             if con:
                 con.rollback()  # Only call rollback if the connection was established
             flash(f"Error: {str(e)}", "danger")
+            print(f"Error : {e}")
         finally:
             # Ensure the database connection is always closed
             if con:
