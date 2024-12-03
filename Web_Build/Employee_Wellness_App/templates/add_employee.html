@@ -1,9 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Activate Your Account</title>
-    <link href="https://fonts.googleapis.com/css2?family=Ample+Display&display=swap" rel="stylesheet">
+{% extends "base.html" %}
+
+{% block title %}Add Employee{% endblock %}
+
+{% block head %}
     <style>
         body {
             font-family: 'Ample Display', sans-serif;
@@ -76,9 +75,9 @@
             background-color: #585656f8;
         }
     </style>
-</head>
-<body>
+{% endblock %}
 
+{% block content %}
 <div class="form-container">
     <h2>Add Employee</h2>
 
@@ -162,6 +161,4 @@
         coordinatorFields.style.display = this.value === "coordinator" ? "block" : "none";
     });
 </script>
-
-</body>
-</html>
+{% endblock %}

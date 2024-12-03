@@ -3,10 +3,28 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from config import Config
 import pymysql
+from functools import wraps
+from datetime import timedelta
 
 app = Flask(__name__)
 app.config.from_object(Config)
 app.secret_key = app.config['SECRET_KEY']
+
+app.permanent_session_lifetime = timedelta(minutes = 30) # max time
+
+# use below decorator
+#
+# @cred_check('')
+def cred_check(*roles):
+    def decorator(fun):
+        @wraps(fun)
+        def wrapped_fun(*args, **kwargs):
+            if session.get('role') not in roles:
+                flash('You do not have permission to access this page.')
+                return redirect(url_for('login'))
+            return fun(*args, **kwargs)
+        return wrapped_fun
+    return decorator
 
 #START HERE
 @app.route('/', methods = ['GET', 'POST'])
@@ -32,11 +50,25 @@ def login():
             if credentials:
                 is_coordinator = verify_coordinator(email, int(identification_num), credentials)
                 user_authenticated = is_coordinator
+                if is_coordinator:
+                    session['role'] = 'coordinator'
+                    session['employee_id'] = identification_num
+                    session['email'] = email
+                    print("coordinator")
             else:
                 user_authenticated = verify_secretary(email, int(identification_num))
+                if user_authenticated:
+                    session['role'] = 'secretary'
+                    session['employee_id'] = identification_num
+                    session['email'] = email
+                    print('secretary')
                 if user_authenticated == False:
                     user_authenticated = employee_login_helper(email, identification_num)
                     if user_authenticated:
+                        session['role'] = 'worker'
+                        session['employee_id'] = identification_num
+                        session['email'] = email
+                        print('worker')
                         is_worker = True
         else:
             flash("You must provide your ID number and email address")
@@ -55,6 +87,13 @@ def login():
     else: #GET
         return render_template('login.html')
 
+# Logout user
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash("You have been logged out")
+    return redirect(url_for('login'))
+
 # Return a list of all employees
 @app.route('/employees')                                                                             # route app 
 def employees():
@@ -72,10 +111,12 @@ def employees():
         con.close()                                                                                  # Always use 'finally' to ensure DB connection gets closed
 
 @app.route('/secretary_home')
+@cred_check('secretary')
 def secretary_home():
     return render_template('secretary_home.html')
 
 @app.route('/coordinator_home')
+@cred_check('coordinator')
 def coordinator_home():
     return render_template('coordinator_home.html')
 
@@ -88,6 +129,7 @@ def coordinator_home():
 #   - Frontend styling error when "Wellness Coordinator" is the selected role
 #   - Frontend "flash" style adjustment
 @app.route('/add_employee', methods =['GET', 'POST'])
+@cred_check('worker', 'secretary', 'coordinator')
 def add_employee():
     if request.method == 'POST':
 
@@ -155,6 +197,7 @@ def add_employee():
 # Validate the input using the function "verify_coordinator_alt" to first check if the employee ID
 # Belongs to a coordinator. Provide the user feedback is the employee ID belongs to a coordinator. - Micah
 @app.route('/delete_employee', methods=['GET', 'POST'])
+@cred_check('secretary', 'coordinator')
 def delete_employee():
     if request.method == 'POST':
         employee_id = request.form.get('employee_id')
@@ -196,6 +239,7 @@ def delete_employee():
 #         Program ID
 #         Program Name
 @app.route('/enroll_employee')
+@cred_check('secretary', 'coordinator')
 def enroll_employee():
     return render_template('enroll_employee.html')
 
@@ -210,6 +254,7 @@ def enroll_employee():
 # micah - 
 # validate input dates(low priority)
 @app.route('/add_wellness_program', methods = ['GET', 'POST'])
+@cred_check('secretary', 'coordinator')
 def add_wellness_program():
     """
     
@@ -290,6 +335,7 @@ def add_wellness_program():
 
 
 @app.route('/view_health_metric', methods = ['GET'])
+@cred_check('coordinator')
 def view_health_metric():
     try:
         con = get_db_connection()
@@ -334,9 +380,14 @@ def view_health_metric():
 
 
 @app.route('/create_health_metric', methods=['GET', 'POST'])
+@cred_check('coordinator')
 def create_health_metric():
+    debug = True
     con = None  # Initialize con variable to avoid UnboundLocalError
     if request.method == 'POST':
+        if debug : 
+            print("meow1")
+            print(f"Form Data: {request.form}")
         # Extracting the data from the form
         try:
             employee_id = request.form.get('employee_id')  # Expecting employee_id from the form
@@ -346,12 +397,13 @@ def create_health_metric():
             blood_pressure_systolic = request.form.get('blood_pressure_systolic')
             blood_pressure_diastolic = request.form.get('blood_pressure_diastolic')
             bmi = request.form.get('bmi')
+            
 
             # Validate inputs and handle default values if necessary
             if not employee_id or not date_measured:
                 flash("Employee ID and Date Measured are required fields.", "danger")
                 return render_template('create_health_metric.html')
-
+            if debug : print("meow2")
             # Convert values to appropriate types if available, otherwise leave as None
             cholesterol_levels = int(cholesterol_levels) if cholesterol_levels else None
             resting_heart_rate = int(resting_heart_rate) if resting_heart_rate else None
@@ -361,6 +413,12 @@ def create_health_metric():
 
             # Establish database connection
             con = get_db_connection()
+
+            if debug and con:
+                print("Connection Recieved")
+            elif debug and not con:
+                print("Connection unsuccessful")
+
             with con.cursor() as cursor:
                 # Check if the employee ID exists in the employee table
                 cursor.execute('SELECT COUNT(*) FROM employee WHERE employee_id = %s', (employee_id,))
@@ -376,18 +434,25 @@ def create_health_metric():
                                             blood_pressure_systolic, blood_pressure_diastolic, bmi)
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
                 """
+                if debug:
+                    print(f"Query: {insert_query}")
+                    print(f"Parameters: {employee_id=}, {date_measured=}, {cholesterol_levels=}, {resting_heart_rate=}, "
+                          f"{blood_pressure_systolic=}, {blood_pressure_diastolic=}, {bmi=}")
+    
                 cursor.execute(insert_query, (employee_id, date_measured, cholesterol_levels, resting_heart_rate,
                                               blood_pressure_systolic, blood_pressure_diastolic, bmi))
 
                 # Commit the transaction
                 con.commit()
                 flash("Health metric successfully added.", "success")
+                if debug : print("meow3")
 
         except Exception as e:
             # Rollback in case of an error
             if con:
                 con.rollback()  # Only call rollback if the connection was established
             flash(f"Error: {str(e)}", "danger")
+            print(f"Error : {e}")
         finally:
             # Ensure the database connection is always closed
             if con:
@@ -404,6 +469,7 @@ needs to handle a GET request, not just post - Micah
 Provided with a program ID, return contact info for enrolled employees
 """
 @app.route('/view_enrollment_list', methods=['GET', 'POST'])
+@cred_check('coordinator')
 def view_enrollment_list():
     program_id = request.args.get('program_id')  # Get program ID from query parameters
     con = get_db_connection()
@@ -436,6 +502,7 @@ def view_enrollment_list():
 
 # "No data available for department breakdown." - Micah
 @app.route('/view_department_breakdown')
+@cred_check('coordinator')
 def view_department_breakdown():
     """
     Return a breakdown of departments and their respective employee counts.
@@ -457,47 +524,6 @@ def view_department_breakdown():
     finally:
         con.close()  # Ensure the connection is closed
         
-# DELETE - Micah, Samantha
-@app.route('/health_highlight')
-def health_highlight():
-    """
-    
-    Requirements : None
-
-    Returns two employees who have shown exceptional
-    Health improvements in their metrics.
-
-    The employee fname, lname should be displayed.
-    Select the metrics that have improved the most,
-    and display the "before" and "after" metric. 
-    
-    ONLY the improved metric(s) should be displayed.
-
-    Optional goals: 
-        - Display the delta value for each improved metric
-        - 
-
-    """
-    return render_template('health_highlight.html')
-
-
-# DELETE
-@app.route('/successful_program')
-def successful_program():
-    """
-    
-    Requirements : None
-
-    Returns : Information program with significant 
-              health improvements in enrolled employees
-
-    Goals :  TBD
-
-    """
-    return render_template('successful_program.html')
-
-
-
 
 
 
