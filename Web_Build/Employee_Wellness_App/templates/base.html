@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Employee Wellness App{% endblock %}</title>
+    <!--style-->
+    {% block head %}
+    {% endblock %}
 </head>
 <body>
     {% if session.get('role') == 'coordinator' %} 
@@ -49,7 +52,7 @@
         </nav>
     {% endif %}
 
-    <!-- Content  -->
+    <!-- Content-->
     {% block content %}
     {% endblock %}
 
