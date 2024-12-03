@@ -95,4 +95,4 @@ CREATE TABLE coordinated_by (
 
 COMMIT;
 
--- SHOW TABLES;
+SHOW TABLES;

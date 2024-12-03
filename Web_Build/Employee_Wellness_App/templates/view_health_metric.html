@@ -1,54 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Health Metric</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-    </style>
-</head>
-<body>
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <ul class="flashes">
-                {% for message in messages %}
-                    <h4>{{ message }}</h4>
-                {% endfor %}
-            </ul>
-        {% endif %}
-    {% endwith %}
-    <h3>View all health metric entries for the specified employee.</h3>
-    <form name = "view_metric" action = "/view_health_metric" method = "post">
-        <label for = "employee_ID">Employee ID: </label>
-        <input type = "number" id = "employee_ID" name = "employee_ID" required>
+{% extends 'base.html' %}
 
-        <button type = "submit">Submit</button>
-    </form>
-    <table>
+{% block title %}
+View Health Metrics
+{% endblock %}
+
+{% block content %}
+<h1>Health Metrics</h1>
+<table border="1">
+    <thead>
         <tr>
-            <th>Date Measured</th>
-            <th>Cholesterol</th>
+            <th>First Name</th>
+            <th>Last Name</th>
             <th>Resting BPM</th>
+            <th>Cholesterol</th>
             <th>Systolic BP</th>
             <th>Diastolic BP</th>
-            <th>Body Mass Index</th>
+            <th>BMI</th>
+            <th>Date Measured</th>
         </tr>
-        {% for metric in metrics %}
+    </thead>
+    <tbody>
+        {% for metric in health_metrics %}
         <tr>
-            <td>{{ metric.date_measured }}</td>
-            <td>{{ metric.cholesterol_levels }}</td>
-            <td>{{ metric.resting_heart_rate }}</td>
-            <td>{{ metric.blood_pressure_systolic }}</td>
-            <td>{{ metric.blood_pressure_diastolic }}</td>
-            <td>{{ metric.bmi }}</td>
+            <td>{{ metric['First Name'] }}</td>
+            <td>{{ metric['Last Name'] }}</td>
+            <td>{{ metric['Resting BPM'] }}</td>
+            <td>{{ metric['Cholesterol'] }}</td>
+            <td>{{ metric['Sys'] }}</td>
+            <td>{{ metric['DBP'] }}</td>
+            <td>{{ metric['BMI'] }}</td>
+            <td>{{ metric['Date Measured'] }}</td>
         </tr>
         {% endfor %}
-    </table>
-</body>
+    </tbody>
+</table>
+{% endblock %}

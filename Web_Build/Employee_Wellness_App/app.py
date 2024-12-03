@@ -1,4 +1,5 @@
 #Import Flask, Config file and PyMySQL
+
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from config import Config
 import pymysql
@@ -6,8 +7,6 @@ import pymysql
 app = Flask(__name__)
 app.config.from_object(Config)
 app.secret_key = app.config['SECRET_KEY']
-
-
 
 #START HERE
 @app.route('/', methods = ['GET', 'POST'])
@@ -290,33 +289,113 @@ def add_wellness_program():
         return render_template('add_wellness_program.html')
 
 
-@app.route('/view_health_metric')
+@app.route('/view_health_metric', methods = ['GET'])
 def view_health_metric():
-    """
-        Frontend Built
+    try:
+        con = get_db_connection()
+        with con.cursor(pymysql.cursors.DictCursor) as cursor:
+            # Query to fetch latest health metrics
+            query = """
+                SELECT fname AS 'First Name', 
+                       lname AS 'Last Name', 
+                       resting_heart_rate AS 'Resting BPM', 
+                       cholesterol_levels AS 'Cholesterol', 
+                       blood_pressure_systolic AS 'Sys', 
+                       blood_pressure_diastolic AS 'DBP', 
+                       bmi AS 'BMI',
+                       date_measured AS 'Date Measured'
+                FROM employee
+                LEFT JOIN health_metrics
+                ON employee.employee_id = health_metrics.employee_id
+                WHERE date_measured = (
+                    SELECT MAX(date_measured) 
+                    FROM health_metrics 
+                    WHERE health_metrics.employee_id = employee.employee_id
+                )
+                ORDER BY date_measured DESC;
+            """
+            cursor.execute(query)
+            health_metrics = cursor.fetchall()
+            print(f"Health Metrics: {health_metrics}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return render_template('view_health_metric.html', health_metrics=[])
+    finally:
+        print("Closing database connection.")
+        con.close()
+        print("Closed.")
 
-        Return data meant to fill a table
-        with ALL health metrics for the specified employee
 
-        Requirements: Get the employee ID number
-
-        RETURN :
-
-        "metrics" an object with "date_measured", "cholesterol_levels", "resting_heart_rate",
-        "blood_pressure_systolic", "blood_pressure.diastolic", "bmi"
-
-        
-    """
-    return render_template('view_health_metric.html')
+    # Ensure to render the template outside the try catch block, in order
+    # to avoid the connection block Flask performs when a DB connection is not closed.
+    # This happens because Flask is single threaded (by default)
+    return render_template('view_health_metric.html', health_metrics=health_metrics)
+    
 
 
-# Build - for employees only
-@app.route('/create_health_metric')
+@app.route('/create_health_metric', methods=['GET', 'POST'])
 def create_health_metric():
-    """
-    DO NOT BUILD - Planning on DELETING this page
-    """
-    return render_template('create_health_metric.html')
+    con = None  # Initialize con variable to avoid UnboundLocalError
+    if request.method == 'POST':
+        # Extracting the data from the form
+        try:
+            employee_id = request.form.get('employee_id')  # Expecting employee_id from the form
+            date_measured = request.form.get('date_measured')
+            cholesterol_levels = request.form.get('cholesterol_levels')
+            resting_heart_rate = request.form.get('resting_heart_rate')
+            blood_pressure_systolic = request.form.get('blood_pressure_systolic')
+            blood_pressure_diastolic = request.form.get('blood_pressure_diastolic')
+            bmi = request.form.get('bmi')
+
+            # Validate inputs and handle default values if necessary
+            if not employee_id or not date_measured:
+                flash("Employee ID and Date Measured are required fields.", "danger")
+                return render_template('create_health_metric.html')
+
+            # Convert values to appropriate types if available, otherwise leave as None
+            cholesterol_levels = int(cholesterol_levels) if cholesterol_levels else None
+            resting_heart_rate = int(resting_heart_rate) if resting_heart_rate else None
+            blood_pressure_systolic = int(blood_pressure_systolic) if blood_pressure_systolic else None
+            blood_pressure_diastolic = int(blood_pressure_diastolic) if blood_pressure_diastolic else None
+            bmi = float(bmi) if bmi else None
+
+            # Establish database connection
+            con = get_db_connection()
+            with con.cursor() as cursor:
+                # Check if the employee ID exists in the employee table
+                cursor.execute('SELECT COUNT(*) FROM employee WHERE employee_id = %s', (employee_id,))
+                result = cursor.fetchone()
+
+                if result[0] == 0:
+                    flash("Employee ID does not exist.", "danger")
+                    return render_template('create_health_metric.html')
+
+                # Insert health metric data into the health_metrics table
+                insert_query = """
+                INSERT INTO health_metrics (employee_id, date_measured, cholesterol_levels, resting_heart_rate, 
+                                            blood_pressure_systolic, blood_pressure_diastolic, bmi)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """
+                cursor.execute(insert_query, (employee_id, date_measured, cholesterol_levels, resting_heart_rate,
+                                              blood_pressure_systolic, blood_pressure_diastolic, bmi))
+
+                # Commit the transaction
+                con.commit()
+                flash("Health metric successfully added.", "success")
+
+        except Exception as e:
+            # Rollback in case of an error
+            if con:
+                con.rollback()  # Only call rollback if the connection was established
+            flash(f"Error: {str(e)}", "danger")
+        finally:
+            # Ensure the database connection is always closed
+            if con:
+                con.close()
+
+        return redirect(url_for('create_health_metric'))  # Redirect back to the same page
+
+    return render_template('create_health_metric.html')  # GET request: render the form
 
 
 """
@@ -401,6 +480,7 @@ def health_highlight():
     """
     return render_template('health_highlight.html')
 
+
 # DELETE
 @app.route('/successful_program')
 def successful_program():
@@ -427,7 +507,10 @@ def successful_program():
 
 
 # Create Connection
+#
+# Don't change this function 
 def get_db_connection():
+    print("Getting database connection from get_db_connection")
     return pymysql.connect(
         host = app.config['DB_HOST'],
         user = app.config['DB_USER'],
@@ -463,7 +546,9 @@ def verify_coordinator(email, id_num, cred):
         return render_template('add_wellness_program.html')
     
     finally:
+        print("Closing database connection.")
         con.close()
+        print("Closed!")
     
     return result
 
