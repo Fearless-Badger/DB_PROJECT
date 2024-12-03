@@ -133,10 +133,13 @@ def coordinator_home():
 def add_employee():
     if request.method == 'POST':
 
-        open = not verify_employee(request.form.get('employee_id'))
-        if not open:
+        emp_id = request.form.get('employee_id')
+        # check if ID number is associated with an existing worker
+        taken = verify_employee(emp_id)
+        if taken:
             flash("Employee ID number is taken!")
             return render_template('add_employee.html')
+        
         if open:
             con = get_db_connection()
             try:
