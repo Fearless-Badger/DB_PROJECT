@@ -1,12 +1,6 @@
 {% extends "base.html" %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Department Breakdown</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+{% block head %}
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -40,7 +34,9 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
     </style>
-</head>
+{% endblock %}
+
+{% block content %}
 <body>
     <div class="container">
         <h1>Department Breakdown</h1>
@@ -63,4 +59,4 @@
 {% endif %}
     </div>
 </body>
-</html>
+{% endblock %}

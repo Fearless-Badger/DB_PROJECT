@@ -54,18 +54,21 @@ def login():
                     session['role'] = 'coordinator'
                     session['employee_id'] = identification_num
                     session['email'] = email
+                    print("coordinator")
             else:
                 user_authenticated = verify_secretary(email, int(identification_num))
                 if user_authenticated:
                     session['role'] = 'secretary'
                     session['employee_id'] = identification_num
                     session['email'] = email
+                    print('secretary')
                 if user_authenticated == False:
                     user_authenticated = employee_login_helper(email, identification_num)
                     if user_authenticated:
                         session['role'] = 'worker'
                         session['employee_id'] = identification_num
                         session['email'] = email
+                        print('worker')
                         is_worker = True
         else:
             flash("You must provide your ID number and email address")
@@ -194,7 +197,7 @@ def add_employee():
 # Validate the input using the function "verify_coordinator_alt" to first check if the employee ID
 # Belongs to a coordinator. Provide the user feedback is the employee ID belongs to a coordinator. - Micah
 @app.route('/delete_employee', methods=['GET', 'POST'])
-@cred_check('secrtary', 'coordinator')
+@cred_check('secretary', 'coordinator')
 def delete_employee():
     if request.method == 'POST':
         employee_id = request.form.get('employee_id')
@@ -236,7 +239,7 @@ def delete_employee():
 #         Program ID
 #         Program Name
 @app.route('/enroll_employee')
-@cred_check('secrtary', 'coordinator')
+@cred_check('secretary', 'coordinator')
 def enroll_employee():
     return render_template('enroll_employee.html')
 
@@ -251,7 +254,7 @@ def enroll_employee():
 # micah - 
 # validate input dates(low priority)
 @app.route('/add_wellness_program', methods = ['GET', 'POST'])
-@cred_check('secrtary', 'coordinator')
+@cred_check('secretary', 'coordinator')
 def add_wellness_program():
     """
     
