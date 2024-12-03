@@ -474,34 +474,64 @@ Provided with a program ID, return contact info for enrolled employees
 @app.route('/view_enrollment_list', methods=['GET', 'POST'])
 @cred_check('coordinator')
 def view_enrollment_list():
-    program_id = request.args.get('program_id')  # Get program ID from query parameters
     con = get_db_connection()
+    enrollment_list = []
+    program_ids = []
+
     try:
         with con.cursor() as cursor:
-            if program_id:
-                # Query to fetch employee details for a specific program
-                cursor.execute("""
-                    SELECT e.employee_id, e.fname, e.lname, e.department, e.work_email, p.program_id, p.program_name
-                    FROM enrollment en
-                    JOIN employee e ON en.employee_id = e.employee_id
-                    JOIN wellness_program p ON en.program_id = p.program_id
-                    WHERE p.program_id = %s
-                """, (program_id,))
+            # Fetch program IDs for dropdown
+            cursor.execute("SELECT program_id FROM wellness_program")
+            program_ids = [row['program_id'] for row in cursor.fetchall()]  # Transform to list
+
+            if request.method == 'POST':
+                program_id = request.form.get('program_id')
+                if program_id:
+                    query = """
+                    SELECT
+                        e.employee_id AS "Employee ID",
+                        CONCAT(e.fname, ' ', e.lname) AS "Employee Name",
+                        wp.program_id AS "Program ID",
+                        wp.program_name AS "Program Name"
+                    FROM
+                        participates_in pi
+                    JOIN
+                        employee e ON pi.employee_id = e.employee_id
+                    JOIN
+                        wellness_program wp ON pi.program_id = wp.program_id
+                    WHERE
+                        wp.program_id = %s
+                    ORDER BY
+                        e.employee_id, wp.program_name;
+                    """
+                    cursor.execute(query, (program_id,))
+                    enrollment_list = cursor.fetchall()
             else:
-                # Fetch all enrollments if no program ID is specified
+                # Default to show all enrollments
                 cursor.execute("""
-                    SELECT e.employee_id, e.fname, e.lname, e.department, e.work_email, p.program_id, p.program_name
-                    FROM enrollment en
-                    JOIN employee e ON en.employee_id = e.employee_id
-                    JOIN wellness_program p ON en.program_id = p.program_id
+                SELECT
+                    e.employee_id AS "Employee ID",
+                    CONCAT(e.fname, ' ', e.lname) AS "Employee Name",
+                    wp.program_id AS "Program ID",
+                    wp.program_name AS "Program Name"
+                FROM
+                    participates_in pi
+                JOIN
+                    employee e ON pi.employee_id = e.employee_id
+                JOIN
+                    wellness_program wp ON pi.program_id = wp.program_id
+                ORDER BY
+                    e.employee_id, wp.program_name;
                 """)
-            enrollment_list = cursor.fetchall()
-            return render_template('view_enrollment_list.html', enrollment_list=enrollment_list)
+                enrollment_list = cursor.fetchall()
+
     except Exception as e:
         print(f"An error occurred: {e}")
-        return render_template('view_enrollment_list.html', error="Could not fetch enrollment list.")
+    
     finally:
         con.close()
+
+    return render_template('view_enrollment_list.html', program_ids=program_ids, enrollment_list=enrollment_list)
 
 # "No data available for department breakdown." - Micah
 @app.route('/view_department_breakdown')
