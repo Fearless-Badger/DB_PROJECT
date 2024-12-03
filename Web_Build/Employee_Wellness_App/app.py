@@ -252,10 +252,10 @@ def add_wellness_program():
         return render_template('add_wellness_program.html')
 
 
-@app.route('/view_health_metric')
+@app.route('/view_health_metric', methods = ['GET'])
 def view_health_metric():
-    con = get_db_connection()
     try:
+        con = get_db_connection()
         with con.cursor(pymysql.cursors.DictCursor) as cursor:
             # Query to fetch latest health metrics
             query = """
@@ -279,12 +279,21 @@ def view_health_metric():
             """
             cursor.execute(query)
             health_metrics = cursor.fetchall()
-        return render_template('view_health_metric.html', health_metrics=health_metrics)
+            print(f"Health Metrics: {health_metrics}")
     except Exception as e:
         print(f"An error occurred: {e}")
         return render_template('view_health_metric.html', health_metrics=[])
     finally:
+        print("Closing database connection.")
         con.close()
+        print("Closed.")
+
+
+    # Ensure to render the template outside the try catch block, in order
+    # to avoid the connection block Flask performs when a DB connection is not closed.
+    # This happens because Flask is single threaded (by default)
+    return render_template('view_health_metric.html', health_metrics=health_metrics)
+    
 
 
 @app.route('/create_health_metric', methods=['GET', 'POST'])
@@ -429,12 +438,15 @@ def successful_program():
 
 
 # Create Connection
+#
+# Don't change this function 
 def get_db_connection():
+    print("Getting database connection from get_db_connection")
     return pymysql.connect(
-        host = app.config['localhost'],
-        user = app.config['root'],
-        password = app.config['Frozenpeach_1'],
-        db = app.config['employee_wellness'],
+        host = app.config['DB_HOST'],
+        user = app.config['DB_USER'],
+        password = app.config['DB_PASSWORD'],
+        db = app.config['DB_NAME'],
         cursorclass=pymysql.cursors.DictCursor
     )
 
@@ -465,7 +477,9 @@ def verify_coordinator(email, id_num, cred):
         return render_template('add_wellness_program.html')
     
     finally:
+        print("Closing database connection.")
         con.close()
+        print("Closed!")
     
     return result
 
