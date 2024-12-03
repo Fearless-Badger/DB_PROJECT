@@ -42,10 +42,11 @@ GROUP BY program_id;
 
 SELECT fname, lname, work_email, phone_number
 FROM(
-	SELECT *
+    SELECT *
     FROM employee, health_metrics -- , wellness_program
     WHERE date_measured = ((SELECT MAX(date_measured) FROM health_metrics, employee WHERE health_metrics.employee_id = employee.employee_id) AS SUB)
-) AS SUP;
+) AS SUP
+LIMIT %s OFFSET %s;
 
 SELECT MAX(date_measured) FROM health_metrics, employee WHERE health_metrics.employee_id = employee.employee_id;
 

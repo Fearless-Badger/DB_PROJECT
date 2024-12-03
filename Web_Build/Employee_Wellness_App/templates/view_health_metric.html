@@ -1,7 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Health Metric</title>
-</head>
+{% extends 'base.html' %}
+
+{% block title %}
+View Health Metrics <!--Style-->
+{% endblock %}
+
+{% block content %}
+<h1>Health Metrics</h1>
+<table border="1">
+    <thead>
+        <tr>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Resting BPM</th>
+            <th>Cholesterol</th>
+            <th>Systolic BP</th>
+            <th>Diastolic BP</th>
+            <th>BMI</th>
+            <th>Date Measured</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for metric in health_metrics %}
+        <tr>
+            <td>{{ metric['First Name'] }}</td>
+            <td>{{ metric['Last Name'] }}</td>
+            <td>{{ metric['Resting BPM'] }}</td>
+            <td>{{ metric['Cholesterol'] }}</td>
+            <td>{{ metric['Sys'] }}</td>
+            <td>{{ metric['DBP'] }}</td>
+            <td>{{ metric['BMI'] }}</td>
+            <td>{{ metric['Date Measured'] }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

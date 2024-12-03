@@ -48,7 +48,12 @@ HOW TO SETUP AND VIEW WEBPAGE:
             DB_NAME = 'employee_wellness'     # DB Name
     -------------------------------------------------------------------
 
-    4. Run the 'run.py' file in the 'Employee_Wellness_App' folder
+    4.  cd into the "Web_Build" folder, then run 
+
+        "pip install -r requirements.txt" 
+
+    5. Run the 'run.py' file in the 'Employee_Wellness_App' folder
        Next follow the link provided in the cmd propmt
 
-    5. Test contributions on staging branch, or your own branch.
+    6. Test contributions on staging branch, or your own branch.
+    +

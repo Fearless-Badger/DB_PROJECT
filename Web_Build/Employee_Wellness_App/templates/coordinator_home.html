@@ -1,26 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coordinator</title>
-</head>
+{% extends "base.html" %}
+
 <body>
     <h1>Coordinator_home_view</h1>
-    <header>
-        <nav>
-            <a href = "{{url_for('add_employee') }}">Add</a>
-            <a href = "{{url_for('delete_employee') }}">Delete</a>
-            <a href = "{{url_for('enroll_employee') }}">Enroll</a>
-            <a href = "{{url_for('add_wellness_program') }}">Add Program</a>
-            <a href = "{{url_for('view_health_metric') }}">View Metric</a>
-            <a href = "{{url_for('create_health_metric') }}">Create Metric</a>
-            <a href = "{{url_for('view_enrollment_list') }}">View Enrollment</a>
-            <a href = "{{url_for('view_department_breakdown') }}">Dept View</a>
-            <a href = "{{url_for('health_highlight') }}">Health highlight</a>
-            <a href = "{{url_for('successful_program') }}">Program</a>
-            <a href = "{{url_for('login') }}">Logout</a>
-        </nav>
-    </header>
     <p1>This is the coordinator View</p1>
 </body>

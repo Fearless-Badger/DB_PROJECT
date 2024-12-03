@@ -1,10 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Delete Employee</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+{% extends "base.html" %}
+
+{% block head %}
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -66,8 +62,9 @@
             color: #3c763d;
         }
     </style>
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
     <div class="container">
         <h1>Delete Employee</h1>
         <form action="/delete_employee" method="post">
@@ -86,5 +83,4 @@
         {% endif %}
         {% endwith %}
     </div>
-</body>
-</html>
+{% endblock %}
