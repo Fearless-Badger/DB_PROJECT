@@ -32,11 +32,22 @@ def login():
             if credentials:
                 is_coordinator = verify_coordinator(email, int(identification_num), credentials)
                 user_authenticated = is_coordinator
+                if is_coordinator:
+                    session['role'] = 'coordinator'
+                    session['employee_id'] = identification_num
+                    session['email'] = email
             else:
                 user_authenticated = verify_secretary(email, int(identification_num))
+                if user_authenticated:
+                    session['role'] = 'secretary'
+                    session['employee_id'] = identification_num
+                    session['email'] = email
                 if user_authenticated == False:
                     user_authenticated = employee_login_helper(email, identification_num)
                     if user_authenticated:
+                        session['role'] = 'worker'
+                        session['employee_id'] = identification_num
+                        session['email'] = email
                         is_worker = True
         else:
             flash("You must provide your ID number and email address")
@@ -54,6 +65,12 @@ def login():
 
     else: #GET
         return render_template('login.html')
+    
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash("You have been logged out")
+    return redirect(url_for('login'))
 
 # Return a list of all employees
 @app.route('/employees')                                                                             # route app 
