@@ -1,3 +1,5 @@
+{% extends "base.html" %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,8 +19,6 @@
             <a href = "{{url_for('create_health_metric') }}">Create Metric</a>
             <a href = "{{url_for('view_enrollment_list') }}">View Enrollment</a>
             <a href = "{{url_for('view_department_breakdown') }}">Dept View</a>
-            <a href = "{{url_for('health_highlight') }}">Health highlight</a>
-            <a href = "{{url_for('successful_program') }}">Program</a>
             <a href = "{{url_for('login') }}">Logout</a>
         </nav>
     </header>

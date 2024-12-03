@@ -4,11 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Employee Wellness App{% endblock %}</title>
-    <!-- Include CSS link  -->
 </head>
 <body>
+    {% if session.get('role') == 'coordinator' %} 
+        <nav>
+            <ul>
+                <li><a href = "{{ url_for('coordinator_home')  }}">Home</a></li>
+                <li><a href = "{{ url_for('add_employee') }}">Register</a></li>
+                <li><a href = "{{ url_for('delete_employee') }}">Delete Employee</a></li>
+                <li><a href = "{{ url_for('enroll_employee') }}">Enroll</a></li>
+                <li><a href = "{{ url_for('add_wellness_program') }}">Add Wellness Program</a></li>
+                <li><a href = "{{ url_for('view_health_metric') }}">View Latest Metrics</a></li>
+                <li><a href = "{{ url_for('create_health_metric') }}">Add Metric</a></li>
+                <li><a href = "{{ url_for('view_enrollment_list') }}">View Enrollments</a></li>
+                <li><a href = "{{ url_for('view_department_breakdown') }}">Dept View</a></li>
+                {% if session.get('role') %}<!--avoid potential error using if block-->
+                    <p>Logged in as {{ session.get('email') }} ({{ session.get('role') }})</p>
+                {% endif %}
+                <li><a href = "{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+        </nav>
+    {% elif session.get('role') == 'secretary' %}
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('secretary_home') }}">Home</a></li>
+                <li><a href = "{{ url_for('add_employee') }}">Register</a></li>
+                <li><a href = "{{ url_for('delete_employee') }}">Delete Employee</a></li>
+                <li><a href = "{{ url_for('enroll_employee') }}">Enroll</a></li>
+                <li><a href = "{{ url_for('add_wellness_program') }}">Add Wellness Program</a></li>
+                {% if session.get('role') %}
+                    <p>Logged in as {{ session.get('email') }} ({{ session.get('role') }})</p>
+                {% endif %}
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+        </nav>
+    {% else %}
+        <nav>
+            <ul>
+                {% if session.get('role') %}
+                    <p>Logged in as {{ session.get('email') }} ({{ session.get('role') }})</p>
+                {% endif %}
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+        </nav>
+    {% endif %}
+
+    <!-- Content  -->
     {% block content %}
-    <!-- This block is intentionally left empty to be filled by child templates -->
     {% endblock %}
+
 </body>
 </html>
