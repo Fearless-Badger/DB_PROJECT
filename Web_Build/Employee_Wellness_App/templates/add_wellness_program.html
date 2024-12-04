@@ -2,133 +2,102 @@
 
 {% block head %}
     <style>
-        /* Basic Reset */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* Form Container */
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            text-align: center;
         }
 
-        /* Body Styling */
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #19193b;
-            color: #333;
+        form {
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            gap: 15px;
+            margin-top: 20px;
         }
 
-        /* Form Container */
-        .form-container {
-            width: 100%;
-            max-width: 600px;
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            margin: 20px;
-        }
-
-        /* Header Styling */
-        .form-container h1 {
-            text-align: center;
-            color: #444;
-            font-size: 1.8em;
-            margin-bottom: 20px;
-        }
-
-        /* Fieldset Styling */
-        fieldset {
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            padding: 20px;
-        }
-
-        fieldset legend {
-            font-weight: bold;
-            color: #666;
-            padding: 0 10px;
-            font-size: 1.1em;
-        }
-
-        /* Label and Input Styling */
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 8px;
-            color: #555;
-        }
-
-        input[type="text"],
-        input[type="number"],
-        input[type="date"],
-        select {
-            width: 100%;
+        input, select, button {
             padding: 10px;
+            font-size: 16px;
+            width: 100%;
             border: 1px solid #ccc;
             border-radius: 5px;
-            font-size: 1em;
-            margin-bottom: 15px;
         }
 
-        /* Button Styling */
-        button[type="submit"] {
-            width: 100%;
-            padding: 12px;
-            font-size: 1.1em;
-            background-color: #000000;
+        button {
+            background-color: #004080;
             color: white;
-            border: none;
-            border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s ease;
         }
 
-        button[type="submit"]:hover {
-            background-color: #585656f8;
+        button:hover {
+            background-color: #0059b3;
         }
 
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .form-container {
-                padding: 20px;
-            }
+        label {
+            text-align: left;
+            font-weight: bold;
+        }
 
-            .form-container h1 {
-                font-size: 1.6em;
-            }
+        /* Fieldset Styling */
+        fieldset {
+            border: none;
+            text-align: left;
+        }
 
-            label, input, select, button {
-                font-size: 1em;
-            }
+        fieldset legend {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #004080;
+        }
+
+        /* Flash Messages */
+        .flashes {
+            list-style-type: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+
+        .flashes li {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+
+        .flashes li.error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+
+        .flashes li.success {
+            background-color: #dff0d8;
+            color: #3c763d;
         }
     </style>
 {% endblock %}
 
 {% block content %}
-<body>
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <ul class="flashes">
-            {% for message in messages %}
-                <h4>{{ message }}</h4>
-            {% endfor %}
-        </ul>
-    {% endif %}
-    {% endwith %}
-    <div class="form-container">
+    <div class="container">
         <h1>Add Wellness Program</h1>
-        <form action="/add_wellness_program" method="post">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul class="flashes">
+                {% for message in messages %}
+                    <li class="{% if 'success' in message %}success{% else %}error{% endif %}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('add_wellness_program') }}" method="post">
             <!-- Program Details -->
             <fieldset>
                 <legend>Program Details</legend>
 
                 <label for="program_name">Program Name:</label>
-                <input type="text" id="program_name" name="program_name" required placeholder="e.g., Fitness Challenge">
+                <input type="text" id="program_name" name="program_name" placeholder="e.g., Fitness Challenge" required>
 
                 <label for="program_type">Type of Program:</label>
                 <select id="program_type" name="program_type" required>
@@ -155,16 +124,15 @@
                 <legend>Authorization Details</legend>
 
                 <label for="coordinator_id">Coordinator ID:</label>
-                <input type="number" id="coordinator_id" name="coordinator_id" required placeholder="e.g., 103">
+                <input type="number" id="coordinator_id" name="coordinator_id" placeholder="e.g., 103" required>
 
-                <label for="expertise">Program ID:</label>
-                <input type="text" id="expertise" name="expertise" required placeholder="e.g., Fitness, Nutrition">
-
+                <label for="program_id">Program ID:</label>
+                <input type="text" id="program_id" name="program_id" placeholder="e.g., 001" required>
             </fieldset>
 
             <!-- Submit Button -->
             <button type="submit">Add Program</button>
         </form>
     </div>
-</body>
 {% endblock %}
+

@@ -4,27 +4,33 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 20px;
+            background-color: #ffffff;
+            margin: 0;  /* Remove default margin */
         }
+
         h1 {
-            color: #333;
+            color: #000000;
+            margin-top: 0;  /* Remove margin above the header */
+            padding-bottom: 10px;  /* Optional: Adds space below the header */
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
+
         th, td {
             padding: 10px;
             text-align: left;
             border-bottom: 1px solid #ccc;
         }
+
         th {
-            background-color: #5cb85c;
+            background-color: #004080;
             color: white;
         }
+
         .container {
             max-width: 800px;
             margin: auto;
@@ -42,21 +48,21 @@
         <h1>Department Breakdown</h1>
 
         {% if department_breakdown %}
-    <table>
-        <tr>
-            <th>Department</th>
-            <th>Employee Count</th>
-        </tr>
-        {% for department in department_breakdown %}
-        <tr>
-            <td>{{ department.department_name }}</td>
-            <td>{{ department.employee_count }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-{% else %}
-    <p>No data available for department breakdown.</p>
-{% endif %}
+            <table>
+                <tr>
+                    <th>Department</th>
+                    <th>Employee Count</th>
+                </tr>
+                {% for department in department_breakdown %}
+                <tr>
+                    <td>{{ department.department_name }}</td>
+                    <td>{{ department.employee_count }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p>No data available for department breakdown.</p>
+        {% endif %}
     </div>
 </body>
 {% endblock %}
