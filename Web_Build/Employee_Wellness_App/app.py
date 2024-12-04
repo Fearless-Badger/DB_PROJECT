@@ -1,6 +1,7 @@
 #Import Flask, Config file and PyMySQL
 
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from decimal import Decimal
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from config import Config
 import pymysql
 from functools import wraps
@@ -11,6 +12,31 @@ app.config.from_object(Config)
 app.secret_key = app.config['SECRET_KEY']
 
 app.permanent_session_lifetime = timedelta(minutes = 30) # max time
+
+
+#def get_db_connection(): 
+    #try:
+        # Log the configuration for debugging purposes
+       # print(f"Database Host: {Config.DB_HOST}")
+       # print(f"Database Port: {Config.DB_PORT}")
+       # print(f"Database User: {Config.DB_USER}")
+       # print(f"Database Name: {Config.DB_NAME}")
+        
+        # Establish the database connection
+        #con = pymysql.connect(
+           # host=Config.DB_HOST,
+           # port=Config.DB_PORT,
+           # user=Config.DB_USER,
+           # password=Config.DB_PASSWORD,
+            #database='employee_wellness',  # Ensure we're connecting to the correct database
+           # cursorclass=pymysql.cursors.DictCursor
+        #)
+        
+        #print("Database connection established.")
+        #return con
+    #except pymysql.MySQLError as e:
+        #print(f"Database connection failed: {e}")
+        #return None
 
 # use below decorator
 #
@@ -118,7 +144,8 @@ def secretary_home():
 @app.route('/coordinator_home')
 @cred_check('coordinator')
 def coordinator_home():
-    return render_template('coordinator_home.html')
+    successful_program = session.get('successful_program', False)  # Fetch from session or database
+    return render_template('coordinator_home.html', successful_program=successful_program)
 
 
 # goal: ensure no employee exists with the given ID, 
@@ -191,6 +218,7 @@ def add_employee():
                 return render_template('add_employee.html')
     else:
         return render_template('add_employee.html')
+
 
 #   Build & Implement
 # - Only the workers or secretaries may be deleted using this tool
@@ -337,135 +365,175 @@ def add_wellness_program():
         return render_template('add_wellness_program.html')
 
 
-@app.route('/view_health_metric', methods = ['GET'])
-@cred_check('coordinator')
+@app.route('/view_health_metric')
 def view_health_metric():
+    con = get_db_connection()
     try:
-        con = get_db_connection()
         with con.cursor(pymysql.cursors.DictCursor) as cursor:
             # Query to fetch latest health metrics
             query = """
-                SELECT fname AS 'First Name', 
-                       lname AS 'Last Name', 
-                       resting_heart_rate AS 'Resting BPM', 
-                       cholesterol_levels AS 'Cholesterol', 
-                       blood_pressure_systolic AS 'Sys', 
-                       blood_pressure_diastolic AS 'DBP', 
+                SELECT fname AS 'First Name',
+                       lname AS 'Last Name',
+                       resting_heart_rate AS 'Resting BPM',
+                       cholesterol_levels AS 'Cholesterol',
+                       blood_pressure_systolic AS 'Sys',
+                       blood_pressure_diastolic AS 'DBP',
                        bmi AS 'BMI',
                        date_measured AS 'Date Measured'
                 FROM employee
                 LEFT JOIN health_metrics
                 ON employee.employee_id = health_metrics.employee_id
                 WHERE date_measured = (
-                    SELECT MAX(date_measured) 
-                    FROM health_metrics 
+                    SELECT MAX(date_measured)
+                    FROM health_metrics
                     WHERE health_metrics.employee_id = employee.employee_id
                 )
                 ORDER BY date_measured DESC;
             """
             cursor.execute(query)
             health_metrics = cursor.fetchall()
-            print(f"Health Metrics: {health_metrics}")
+        return render_template('view_health_metric.html', health_metrics=health_metrics)
     except Exception as e:
         print(f"An error occurred: {e}")
         return render_template('view_health_metric.html', health_metrics=[])
     finally:
-        print("Closing database connection.")
         con.close()
-        print("Closed.")
-
-
-    # Ensure to render the template outside the try catch block, in order
-    # to avoid the connection block Flask performs when a DB connection is not closed.
-    # This happens because Flask is single threaded (by default)
-    return render_template('view_health_metric.html', health_metrics=health_metrics)
-    
 
 
 @app.route('/create_health_metric', methods=['GET', 'POST'])
-@cred_check('coordinator')
 def create_health_metric():
-    debug = True
-    con = None  # Initialize con variable to avoid UnboundLocalError
+    con = None
     if request.method == 'POST':
-        if debug : 
-            print("meow1")
-            print(f"Form Data: {request.form}")
-        # Extracting the data from the form
         try:
-            employee_id = request.form.get('employee_id')  # Expecting employee_id from the form
+            # Extract form data
+            employee_id = request.form.get('employee_id')
             date_measured = request.form.get('date_measured')
             cholesterol_levels = request.form.get('cholesterol_levels')
             resting_heart_rate = request.form.get('resting_heart_rate')
             blood_pressure_systolic = request.form.get('blood_pressure_systolic')
             blood_pressure_diastolic = request.form.get('blood_pressure_diastolic')
             bmi = request.form.get('bmi')
-            
 
-            # Validate inputs and handle default values if necessary
+            # Validate required fields
             if not employee_id or not date_measured:
                 flash("Employee ID and Date Measured are required fields.", "danger")
                 return render_template('create_health_metric.html')
-            if debug : print("meow2")
-            # Convert values to appropriate types if available, otherwise leave as None
+
+            # Convert to appropriate types
             cholesterol_levels = int(cholesterol_levels) if cholesterol_levels else None
             resting_heart_rate = int(resting_heart_rate) if resting_heart_rate else None
             blood_pressure_systolic = int(blood_pressure_systolic) if blood_pressure_systolic else None
             blood_pressure_diastolic = int(blood_pressure_diastolic) if blood_pressure_diastolic else None
             bmi = float(bmi) if bmi else None
 
-            # Establish database connection
+            # Insert into database
             con = get_db_connection()
-
-            if debug and con:
-                print("Connection Recieved")
-            elif debug and not con:
-                print("Connection unsuccessful")
-
             with con.cursor() as cursor:
-                # Check if the employee ID exists in the employee table
-                cursor.execute('SELECT COUNT(*) FROM employee WHERE employee_id = %s', (employee_id,))
-                result = cursor.fetchone()
-
-                if result[0] == 0:
-                    flash("Employee ID does not exist.", "danger")
-                    return render_template('create_health_metric.html')
-
-                # Insert health metric data into the health_metrics table
-                insert_query = """
-                INSERT INTO health_metrics (employee_id, date_measured, cholesterol_levels, resting_heart_rate, 
-                                            blood_pressure_systolic, blood_pressure_diastolic, bmi)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-                """
-                if debug:
-                    print(f"Query: {insert_query}")
-                    print(f"Parameters: {employee_id=}, {date_measured=}, {cholesterol_levels=}, {resting_heart_rate=}, "
-                          f"{blood_pressure_systolic=}, {blood_pressure_diastolic=}, {bmi=}")
-    
-                cursor.execute(insert_query, (employee_id, date_measured, cholesterol_levels, resting_heart_rate,
-                                              blood_pressure_systolic, blood_pressure_diastolic, bmi))
-
-                # Commit the transaction
+                cursor.execute("""
+                    INSERT INTO health_metrics (
+                        employee_id, date_measured, cholesterol_levels, resting_heart_rate,
+                        blood_pressure_systolic, blood_pressure_diastolic, bmi
+                    )
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """, (employee_id, date_measured, cholesterol_levels, resting_heart_rate,
+                      blood_pressure_systolic, blood_pressure_diastolic, bmi))
                 con.commit()
-                flash("Health metric successfully added.", "success")
-                if debug : print("meow3")
 
+            flash("Health metric successfully added.", "success")
+            return redirect(url_for('success'))  # Redirect to success screen
         except Exception as e:
-            # Rollback in case of an error
             if con:
-                con.rollback()  # Only call rollback if the connection was established
+                con.rollback()
             flash(f"Error: {str(e)}", "danger")
-            print(f"Error : {e}")
         finally:
-            # Ensure the database connection is always closed
             if con:
                 con.close()
 
-        return redirect(url_for('create_health_metric'))  # Redirect back to the same page
+    return render_template('create_health_metric.html')
 
-    return render_template('create_health_metric.html')  # GET request: render the form
+@app.route('/success')
+def success():
+    """Display a success message after adding a health metric."""
+    return render_template('success.html')
 
 
+
+@app.route('/health_highlight')
+def health_highlight():
+    con = get_db_connection()
+    try:
+        with con.cursor(pymysql.cursors.DictCursor) as cursor:
+            # Query: Average Blood Pressure by Department
+            query_avg_bp = """
+                SELECT e.department_id, 
+                       ROUND(AVG(h.blood_pressure_systolic), 2) AS avg_systolic,
+                       ROUND(AVG(h.blood_pressure_diastolic), 2) AS avg_diastolic
+                FROM employee e
+                JOIN health_metrics h ON e.employee_id = h.employee_id
+                GROUP BY e.department_id;
+            """
+            cursor.execute(query_avg_bp)
+            avg_bp_data = cursor.fetchall()
+            print(avg_bp_data)
+
+            # Query: Department-Wise Averages (BMI, Heart Rate)
+            query_dept_avg = """
+                SELECT e.department_id, 
+                       ROUND(AVG(h.bmi), 2) AS avg_bmi,
+                       ROUND(AVG(h.resting_heart_rate), 2) AS avg_heart_rate
+                FROM employee e
+                JOIN health_metrics h ON e.employee_id = h.employee_id
+                GROUP BY e.department_id
+                ORDER BY avg_bmi ASC;
+            """
+            cursor.execute(query_dept_avg)
+            dept_avg_data = cursor.fetchall()
+            print(dept_avg_data)
+
+            # Query: Unhealthy Metrics (BMI, Cholesterol, BP)
+            query_unhealthy_metrics = """
+                SELECT 
+                    COUNT(CASE WHEN bmi < 18.5 OR bmi > 24.9 THEN 1 END) * 100.0 / COUNT(*) AS unhealthy_bmi_percentage,
+                    COUNT(CASE WHEN cholesterol_levels > 200 THEN 1 END) * 100.0 / COUNT(*) AS unhealthy_cholesterol_percentage,
+                    COUNT(CASE WHEN blood_pressure_systolic > 130 OR blood_pressure_diastolic > 90 THEN 1 END) * 100.0 / COUNT(*) AS unhealthy_bp_percentage
+                FROM health_metrics;
+            """
+            cursor.execute(query_unhealthy_metrics)
+            unhealthy_metrics_data = cursor.fetchone()  # Single-row result
+
+            # Convert Decimal to float
+            avg_bp_data = convert_decimal_to_float(avg_bp_data)
+            dept_avg_data = convert_decimal_to_float(dept_avg_data)
+
+            print(f"Converted avg_bp_data: {avg_bp_data}")  # Debugging print
+            print(f"Converted dept_avg_data: {dept_avg_data}")  # Debugging print
+
+        # Pass the data to the template
+        return render_template(
+            'health_highlight.html',
+            avg_bp_data=avg_bp_data,
+            dept_avg_data=dept_avg_data,
+            unhealthy_metrics_data=unhealthy_metrics_data
+        )
+    except Exception as e:
+        print(f"Error: {e}")
+        return render_template('health_highlight.html', 
+                               avg_bp_data=avg_bp_data, 
+                               dept_avg_data=dept_avg_data, 
+                               unhealthy_metrics_data=unhealthy_metrics_data)
+    finally:
+        con.close()
+
+
+
+def convert_decimal_to_float(data):
+    """Convert all Decimal values in the data to float."""
+    for item in data:
+        for key, value in item.items():
+            if isinstance(value, Decimal):
+                print(f"Converting {value} to float")  # Debugging print
+                item[key] = float(value)
+    return data
 """
 needs to handle a GET request, not just post - Micah
 
@@ -578,6 +646,8 @@ def get_db_connection():
         cursorclass=pymysql.cursors.DictCursor
     )
 
+
+    
 # This function returns true if the credentials correspond to a coordinator in the database, false otherwise
 def verify_coordinator(email, id_num, cred):
     con = get_db_connection()
