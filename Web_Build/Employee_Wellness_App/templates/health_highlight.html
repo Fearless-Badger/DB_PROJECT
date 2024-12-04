@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Highlight</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
+</head>
+<body>
+    <h1>Health Highlight</h1>
+
+    <!-- Section for Average Blood Pressure Chart -->
+    <h2>Average Blood Pressure by Department</h2>
+    <canvas id="bpChart" width="400" height="200"></canvas>
+
+    <!-- Section for BMI and Heart Rate Chart -->
+    <h2>Average BMI and Heart Rate by Department</h2>
+    <canvas id="bmiChart" width="400" height="200"></canvas>
+
+    <script>
+        // Fetch and parse the data passed from Flask to the template
+        var avgBpData = JSON.parse('{{ avg_bp_data | tojson | safe }}');
+        var deptAvgData = JSON.parse('{{ dept_avg_data | tojson | safe }}');
+        
+        // Extract department names and metrics for the Blood Pressure Chart
+        var departmentNamesBp = avgBpData.map(item => item.department_id);
+        var systolicValues = avgBpData.map(item => item.avg_systolic);
+        var diastolicValues = avgBpData.map(item => item.avg_diastolic);
+        
+        // Extract department names and metrics for the BMI Chart
+        var departmentNamesBmi = deptAvgData.map(item => item.department_id);
+        var bmiValues = deptAvgData.map(item => item.avg_bmi);
+        var heartRateValues = deptAvgData.map(item => item.avg_heart_rate);
+
+        // Create the Blood Pressure chart
+        var ctxBp = document.getElementById('bpChart').getContext('2d');
+        var bpChart = new Chart(ctxBp, {
+            type: 'bar',
+            data: {
+                labels: departmentNamesBp,
+                datasets: [
+                    {
+                        label: 'Avg Systolic BP',
+                        data: systolicValues,
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Avg Diastolic BP',
+                        data: diastolicValues,
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Create the BMI chart
+        var ctxBmi = document.getElementById('bmiChart').getContext('2d');
+        var bmiChart = new Chart(ctxBmi, {
+            type: 'bar',
+            data: {
+                labels: departmentNamesBmi,
+                datasets: [
+                    {
+                        label: 'Avg BMI',
+                        data: bmiValues,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Avg Heart Rate',
+                        data: heartRateValues,
+                        backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                        borderColor: 'rgba(153, 102, 255, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
