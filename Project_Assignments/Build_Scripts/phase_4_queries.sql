@@ -113,7 +113,35 @@ WHERE (h.bmi < 18.5 OR h.bmi > 24.9)
    OR (h.blood_pressure_systolic > 130 OR h.blood_pressure_diastolic > 90);
 
 
+-- Percentage of unhealthy metrics
+SELECT 
+    COUNT(CASE WHEN bmi < 18.5 OR bmi > 24.9 THEN 1 END) * 100.0 / COUNT(*) AS unhealthy_bmi_percentage,
+    COUNT(CASE WHEN cholesterol_levels > 200 THEN 1 END) * 100.0 / COUNT(*) AS unhealthy_cholesterol_percentage,
+    COUNT(CASE WHEN blood_pressure_systolic > 130 OR blood_pressure_diastolic > 90 THEN 1 END) * 100.0 / COUNT(*) AS unhealthy_bp_percentage
+FROM health_metrics;
 
+
+-- Department averages
+SELECT 
+    e.department_id, 
+    ROUND(AVG(h.bmi), 2) AS avg_bmi,
+    ROUND(AVG(h.resting_heart_rate), 2) AS avg_heart_rate,
+    ROUND(AVG(h.blood_pressure_systolic), 2) AS avg_systolic,
+    ROUND(AVG(h.blood_pressure_diastolic), 2) AS avg_diastolic
+FROM employee e
+JOIN health_metrics h ON e.employee_id = h.employee_id
+GROUP BY e.department_id
+ORDER BY avg_bmi ASC;
+
+
+-- Average blood pressure by department
+SELECT 
+    e.department_id, 
+    ROUND(AVG(h.blood_pressure_systolic), 2) AS avg_systolic,
+    ROUND(AVG(h.blood_pressure_diastolic), 2) AS avg_diastolic
+FROM employee e
+JOIN health_metrics h ON e.employee_id = h.employee_id
+GROUP BY e.department_id;
 
 
 
