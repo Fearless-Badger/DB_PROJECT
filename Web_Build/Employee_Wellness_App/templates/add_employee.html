@@ -115,6 +115,12 @@
             <a href="{{ url_for('add_employee') }}" class="active">Register</a>
             <a href="{{ url_for('delete_employee') }}">Delete Employee</a>
             <a href="{{ url_for('enroll_employee') }}">Enroll</a>
+            <a href="{{ url_for('add_wellness_program') }}">Add Wellness Program</a>
+            <a href = "{{ url_for('view_health_metric') }}">View Metrics</a>
+            <a href = "{{'create_health_metric'}}">Add Metric</a>
+            <a href = "{{ url_for('view_enrollment_list') }}">Enrollments</a>
+            <a href = "{{ url_for('view_department_breakdown')}}"> Dept View</a>
+
         </div>
         <div class="nav-right">
             <a href="{{ url_for('logout') }}">Logout</a>
