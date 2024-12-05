@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from config import Config
 import pymysql
 from functools import wraps
-from datetime import timedelta
+from datetime import timedelta, date
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -236,11 +236,7 @@ def delete_employee():
 
     return render_template('delete_employee.html')  # Render the delete employee page for GET request
 
-# Build & Implement
-# Get the employee ID
-#         Employee email
-#         Program ID
-#         Program Name
+# works
 @app.route('/enroll_employee', methods = ['GET', 'POST'])
 @cred_check('secretary', 'coordinator')
 def enroll_employee():
@@ -249,10 +245,46 @@ def enroll_employee():
     
     emp_id = int(request.form.get('employee_id'))
     prg_id = int(request.form.get('program_id'))
-
-    flash("Blahhh")
-
     print(f"{emp_id=}, {prg_id=}")
+
+    # enrollment status, employee, program id are all validated
+    already_enrolled = check_enrollment(emp_id, prg_id)
+    if already_enrolled:
+        flash(f"Employee #{emp_id} is already enrolled in Program #{prg_id}")
+        return render_template("enroll_employee.html")
+    
+    employee_exists = verify_employee(emp_id)
+    if not employee_exists:
+        flash(f"Employee #{emp_id} is not Registered")
+        return render_template("enroll_employee.html")
+    
+    program_exists = verify_program(prg_id)
+    if not program_exists:
+        flash(f"Program #{prg_id} does not exist")
+        return render_template("enroll_employee.html")
+    
+    insertion_statement = """
+                          INSERT INTO participates_in(employee_id, program_id, enrollment_date)
+                          VALUES (%s, %s, %s)
+                          """
+    
+    success = False
+    today = date.today()
+    con = get_db_connection()
+    with con.cursor() as cur:
+        try:
+            cur.execute(insertion_statement, (emp_id, prg_id, today))
+            con.commit()
+        except Exception as ecp:
+            print(f"Error in enroll_employee routing : {ecp}")
+        finally:
+            print(f"Closing DB connection in enroll_employee routing")
+            con.close()
+    cur_status = check_enrollment(emp_id, prg_id)
+    if cur_status:
+        flash(f"Employee #{emp_id} is now Enrolled in Program #{prg_id}!")
+        return render_template('enroll_employee.html')
+    
     return render_template('enroll_employee.html')
 
 # Build & Implement
@@ -752,6 +784,31 @@ def employee_login_helper(email, id_num):
         con.close()
     return result
 
+
+# returns true if an employee is already enrolled in the given program
+def check_enrollment(emp_id, prg_id):
+    con = get_db_connection()
+    result = False
+    with con.cursor() as cur:
+        try:
+            query = """
+                        SELECT distinct employee_id 
+                        FROM participates_in
+                        WHERE employee_id = %s
+                        AND program_id = %s
+                    """
+            
+            cur.execute(query, (emp_id, prg_id))
+            con.commit()
+
+            if cur.fetchone():
+                result = True
+        except Exception as e:
+            print(f"Error in check_enrollment : {e}")
+        finally:
+            print(f"Closing DB connection in check_enrollment routing...")
+            con.close()
+    return result
 
 
 # Add "verify coordinator_alt(employee_id)" for /add_wellness_program
