@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from config import Config
 import pymysql
 from functools import wraps
-from datetime import timedelta
+from datetime import timedelta, date
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -140,55 +140,56 @@ def add_employee():
             flash("Employee ID number is taken!")
             return render_template('add_employee.html')
         
-        if open:
-            con = get_db_connection()
-            try:
-                with con.cursor() as cursor:
-                    insert ="""
+        
+        
+        con = get_db_connection()
+        try:
+            with con.cursor() as cursor:
+                insert ="""
                                 INSERT INTO employee (employee_id, fname, middle_initial, lname, `role` , phone_number, department_id, work_email)
                                 VALUES
                                 (%s, %s, %s, %s, %s, %s, %s, %s)
                             """
                     
-                    cursor.execute(insert, 
-                                   (request.form.get('employee_id'),
-                                    request.form.get('fname'),
-                                    request.form.get('middle_initial'),
-                                    request.form.get('lname'),
-                                    request.form.get('role'),
-                                    request.form.get('phone_number'),
-                                    request.form.get('department_id'),
-                                    request.form.get('work_email')))
+                cursor.execute(insert, 
+                                (request.form.get('employee_id'),
+                                request.form.get('fname'),
+                                request.form.get('middle_initial'),
+                                request.form.get('lname'),
+                                request.form.get('role'),
+                                request.form.get('phone_number'),
+                                request.form.get('department_id'),
+                                request.form.get('work_email')))
                     
-                    con.commit() # commit insert
+                con.commit() # commit insert
 
                     
-                    if request.form.get('role') == 'coordinator':
-                        wc_insert = """
+                if request.form.get('role') == 'coordinator':
+                    wc_insert = """
                                         INSERT INTO wellness_coordinator (employee_id, area_of_expertise, coordinator_credentials)
                                         VALUES (%s, %s, %s)
                                     """
                         
-                        cursor.execute(wc_insert,(
-                                       request.form.get('employee_id'),
-                                       request.form.get('area_of_expertise'),
-                                       request.form.get('coordinator_credentials')))
+                    cursor.execute(wc_insert,(
+                                    request.form.get('employee_id'),
+                                    request.form.get('area_of_expertise'),
+                                    request.form.get('coordinator_credentials')))
                         
-                        con.commit()
+                    con.commit()
 
-            except Exception as e:
-                print(f"An error occurred in add_employee routing: {e}")
-                flash("error")
-                return render_template('add_employee.html')
-            finally:
-                con.close()
+        except Exception as e:
+            print(f"An error occurred in add_employee routing: {e}")
+            flash("error")
+            return render_template('add_employee.html')
+        finally:
+            con.close()
 
-            if verify_employee(request.form.get('employee_id')):
-                flash('Success!')
-                return render_template('add_employee.html')
-            else:
-                flash('Validation Error: 243')
-                return render_template('add_employee.html')
+        if verify_employee(request.form.get('employee_id')):
+            flash('Success!')
+            return render_template('add_employee.html')
+        else:
+            flash('Validation Error: 243')
+            return render_template('add_employee.html')
     else:
         return render_template('add_employee.html')
 
@@ -236,14 +237,55 @@ def delete_employee():
 
     return render_template('delete_employee.html')  # Render the delete employee page for GET request
 
-# Build & Implement
-# Get the employee ID
-#         Employee email
-#         Program ID
-#         Program Name
-@app.route('/enroll_employee')
+# works
+@app.route('/enroll_employee', methods = ['GET', 'POST'])
 @cred_check('secretary', 'coordinator')
 def enroll_employee():
+    if request.method == 'GET':
+        return render_template('enroll_employee.html')
+    
+    emp_id = int(request.form.get('employee_id'))
+    prg_id = int(request.form.get('program_id'))
+    print(f"{emp_id=}, {prg_id=}")
+
+    # enrollment status, employee, program id are all validated
+    already_enrolled = check_enrollment(emp_id, prg_id)
+    if already_enrolled:
+        flash(f"Employee #{emp_id} is already enrolled in Program #{prg_id}")
+        return render_template("enroll_employee.html")
+    
+    employee_exists = verify_employee(emp_id)
+    if not employee_exists:
+        flash(f"Employee #{emp_id} is not Registered")
+        return render_template("enroll_employee.html")
+    
+    program_exists = verify_program(prg_id)
+    if not program_exists:
+        flash(f"Program #{prg_id} does not exist")
+        return render_template("enroll_employee.html")
+    
+    insertion_statement = """
+                          INSERT INTO participates_in(employee_id, program_id, enrollment_date)
+                          VALUES (%s, %s, %s)
+                          """
+    
+    success = False
+    today = date.today()
+    con = get_db_connection()
+    with con.cursor() as cur:
+        try:
+            cur.execute(insertion_statement, (emp_id, prg_id, today))
+            con.commit()
+        except Exception as ecp:
+            print(f"Error in enroll_employee routing : {ecp}")
+        finally:
+            print(f"Closing DB connection in enroll_employee routing")
+            con.close()
+    cur_status = check_enrollment(emp_id, prg_id)
+    if cur_status:
+        flash(f"Employee #{emp_id} is now Enrolled in Program #{prg_id}!")
+        return render_template('enroll_employee.html')
+    
     return render_template('enroll_employee.html')
 
 # Build & Implement
@@ -743,6 +785,31 @@ def employee_login_helper(email, id_num):
         con.close()
     return result
 
+
+# returns true if an employee is already enrolled in the given program
+def check_enrollment(emp_id, prg_id):
+    con = get_db_connection()
+    result = False
+    with con.cursor() as cur:
+        try:
+            query = """
+                        SELECT distinct employee_id 
+                        FROM participates_in
+                        WHERE employee_id = %s
+                        AND program_id = %s
+                    """
+            
+            cur.execute(query, (emp_id, prg_id))
+            con.commit()
+
+            if cur.fetchone():
+                result = True
+        except Exception as e:
+            print(f"Error in check_enrollment : {e}")
+        finally:
+            print(f"Closing DB connection in check_enrollment routing...")
+            con.close()
+    return result
 
 
 # Add "verify coordinator_alt(employee_id)" for /add_wellness_program

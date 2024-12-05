@@ -1,9 +1,32 @@
 {% extends "base.html" %}
 
 {% block head %}
-<h1>Blah - style</h1> <!--style section-->
+<!--style section-->
 {% endblock %}
 
 {% block content %}
-<h4>boring html section</h4>
+    <div>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul class="flashes">
+                {% for message in messages %}
+                    <b>{{ message }}</b>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        {% endwith %}
+    </div>
+
+    <div class = "container">
+        <h1>Enroll in a Program!</h1>
+        <form method = "post" action = "{{  url_for('enroll_employee')  }}">
+            <label for="employee_id">Employee ID</label>
+            <input type = "number" id = "employee_id" name = "employee_id" placeholder="Enter Employee ID" required>
+
+            <label for = "program_id">Program ID</label>
+            <input type = "number" id = "program_id" name = "program_id" placeholder = "Enter Program ID" required>
+
+            <button type = "submit">Enroll</button>
+        </form>
+    </div>
 {% endblock %}
