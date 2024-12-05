@@ -241,9 +241,18 @@ def delete_employee():
 #         Employee email
 #         Program ID
 #         Program Name
-@app.route('/enroll_employee')
+@app.route('/enroll_employee', methods = ['GET', 'POST'])
 @cred_check('secretary', 'coordinator')
 def enroll_employee():
+    if request.method == 'GET':
+        return render_template('enroll_employee.html')
+    
+    emp_id = int(request.form.get('employee_id'))
+    prg_id = int(request.form.get('program_id'))
+
+    flash("Blahhh")
+
+    print(f"{emp_id=}, {prg_id=}")
     return render_template('enroll_employee.html')
 
 # Build & Implement
