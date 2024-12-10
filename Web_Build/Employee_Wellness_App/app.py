@@ -153,12 +153,12 @@ def add_employee():
                     
                 cursor.execute(insert, 
                                 (request.form.get('employee_id'),
-                                request.form.get('fname'),
+                                request.form.get('first_name'),
                                 request.form.get('middle_initial'),
-                                request.form.get('lname'),
+                                request.form.get('last_name'),
                                 request.form.get('role'),
                                 request.form.get('phone_number'),
-                                request.form.get('department_id'),
+                                request.form.get('department'),
                                 request.form.get('work_email')))
                     
                 con.commit() # commit insert
