@@ -327,7 +327,7 @@ def add_wellness_program():
         start_date     = str(request.form.get('start_date'))
         end_date       = str(request.form.get('end_date'))
         coordinator_id = int(request.form.get('coordinator_id'))
-        program_id     = int(request.form.get('expertise'))
+        program_id     = int(request.form.get('program_id'))
 
         id_number_available = not verify_program(program_id)
         valid_coord = verify_coordinator_alt(coordinator_id)
