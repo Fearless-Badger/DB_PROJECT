@@ -1,5 +1,8 @@
 # Project Configurations
 
+# Submission folder
+src_code
+
 #venv folder
 venv
 
