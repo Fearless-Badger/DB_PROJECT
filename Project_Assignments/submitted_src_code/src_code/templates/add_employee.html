@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <style>
+        /* General Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: rgb(255, 255, 255);
+        }
+
+        /* Content Layout */
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        input, select, button {
+            padding: 10px;
+            font-size: 16px;
+            width: 100%;
+            max-width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #004080;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0059b3;
+        }
+
+        label {
+            text-align: left;
+            font-weight: bold;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>Add Employee</h1>
+        <form method="post" action="{{ url_for('add_employee') }}">
+            <label for="employee_id">Employee ID</label>
+            <input type="text" id="employee_id" name="employee_id" placeholder="Enter Employee ID" required>
+
+            <label for="first_name">First Name</label>
+            <input type="text" id="first_name" name="first_name" placeholder="Enter First Name" required>
+
+            <label for="middle_initial">Middle Initial</label>
+            <input type="text" id="middle_initial" name="middle_initial" placeholder="Enter Middle Initial">
+
+            <label for="last_name">Last Name</label>
+            <input type="text" id="last_name" name="last_name" placeholder="Enter Last Name" required>
+
+            <label for="role">Role</label>
+            <input type="text" id="role" name="role" placeholder="Enter Role" required>
+
+            <label for="phone_number">Phone Number</label>
+            <input type="tel" id="phone_number" name="phone_number" placeholder="Enter Phone Number" required>
+
+            <label for="department">Department</label>
+            <input type="text" id="department" name="department" placeholder="Enter Department" required>
+
+            <label for="work_email">Work Email</label>
+            <input type="email" id="work_email" name="work_email" placeholder="Enter Work Email" required>
+
+            <button type="submit">Add Employee</button>
+        </form>
+    </div>
+{% endblock %}
+

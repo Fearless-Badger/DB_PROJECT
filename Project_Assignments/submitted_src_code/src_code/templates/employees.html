@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Page</title>
+</head>
+
+<h1>Employees</h1>
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Role</th>
+        <th>Email</th>
+    </tr>
+    {% for emp in employees %}
+    <tr>
+        <td>{{ emp.employee_id }}</td>
+        <td>{{ emp.fname }} {{ emp.lname }}</td>
+        <td>{{ emp.role }}</td>
+        <td>{{ emp.work_email }}</td>
+        <td>
+            <!-- -->
+            <!-- -->
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+<a href="{{ url_for('login') }}">Return to Home</a>

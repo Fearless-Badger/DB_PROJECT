@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+        }
+        h1 {
+            color: #000000;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ccc;
+        }
+        th {
+            background-color: #004080;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<body>
+    <div class="container">
+        <h1>Enrollment List</h1>
+
+        <form method="POST" action="{{ url_for('view_enrollment_list') }}">
+            <label for="program_id">Select Program:</label>
+            <select name="program_id" id="program_id">
+                <option value="">-- Select a Program --</option>
+                {% for pid in program_ids %}
+                    <option value="{{ pid }}">{{ pid }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">View</button>
+        </form>
+
+        {% if enrollment_list %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Employee ID</th>
+                        <th>Employee Name</th>
+                        <th>Program ID</th>
+                        <th>Program Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for enrollment in enrollment_list %}
+                        <tr>
+                            <td>{{ enrollment['Employee ID'] }}</td>
+                            <td>{{ enrollment['Employee Name'] }}</td>
+                            <td>{{ enrollment['Program ID'] }}</td>
+                            <td>{{ enrollment['Program Name'] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No enrollments found.</p>
+        {% endif %}
+    </div>
+</body>
+{% endblock %}

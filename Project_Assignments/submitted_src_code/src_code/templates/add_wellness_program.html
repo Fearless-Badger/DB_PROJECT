@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <style>
+        /* Form Container */
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        input, select, button {
+            padding: 10px;
+            font-size: 16px;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #004080;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0059b3;
+        }
+
+        label {
+            text-align: left;
+            font-weight: bold;
+        }
+
+        /* Fieldset Styling */
+        fieldset {
+            border: none;
+            text-align: left;
+        }
+
+        fieldset legend {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #004080;
+        }
+
+        /* Flash Messages */
+        .flashes {
+            list-style-type: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+
+        .flashes li {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+
+        .flashes li.error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+
+        .flashes li.success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>Add Wellness Program</h1>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul class="flashes">
+                {% for message in messages %}
+                    <li class="{% if 'success' in message %}success{% else %}error{% endif %}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('add_wellness_program') }}" method="post">
+            <!-- Program Details -->
+            <fieldset>
+                <legend>Program Details</legend>
+
+                <label for="program_name">Program Name:</label>
+                <input type="text" id="program_name" name="program_name" placeholder="e.g., Fitness Challenge" required>
+
+                <label for="program_type">Type of Program:</label>
+                <select id="program_type" name="program_type" required>
+                    <option value="" disabled selected>Select a type</option>
+                    <option value="bmi">BMI Reduction Program</option>
+                    <option value="blood_pressure">Blood Pressure Monitoring</option>
+                    <option value="heart_rate">Heart Rate Control</option>
+                    <option value="cholesterol">Cholesterol Management</option>
+                    <option value="mental_health">Mental Health Session</option>
+                    <option value="nutrition">Nutrition Program</option>
+                    <option value="fitness">Fitness Challenge</option>
+                    <option value="other">Other</option>
+                </select>
+
+                <label for="start_date">Start Date:</label>
+                <input type="date" id="start_date" name="start_date" required>
+
+                <label for="end_date">End Date:</label>
+                <input type="date" id="end_date" name="end_date" required>
+            </fieldset>
+
+            <!-- Coordinator Details -->
+            <fieldset>
+                <legend>Authorization Details</legend>
+
+                <label for="coordinator_id">Coordinator ID:</label>
+                <input type="number" id="coordinator_id" name="coordinator_id" placeholder="e.g., 103" required>
+
+                <label for="program_id">Program ID:</label>
+                <input type="text" id="program_id" name="program_id" placeholder="e.g., 001" required>
+            </fieldset>
+
+            <!-- Submit Button -->
+            <button type="submit">Add Program</button>
+        </form>
+    </div>
+{% endblock %}
+

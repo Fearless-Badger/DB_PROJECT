@@ -16,8 +16,7 @@
         /* Body Styling */
         body {
             font-family: Arial, sans-serif;
-            /*  url('https://images.unsplash.com/photo-1547919307-1ecb10702e6f?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzZ8fGd5bXxlbnwwfHwwfHx8MA%3D%3D'); */
-            background-color: #0443f2;
+            background-image: url('https://images.unsplash.com/photo-1547919307-1ecb10702e6f?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzZ8fGd5bXxlbnwwfHwwfHx8MA%3D%3D');
             background-size: cover;
             background-position: center;
             color: black;
@@ -74,7 +73,7 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            transition: background-color 0.4s ease;
+            transition: background-color 0.3s ease;
         }
 
         input[type="submit"]:hover {
@@ -103,14 +102,14 @@
         {% endif %}
         {% endwith %}
         <form name="login-form" action="/" method="post">
-            <label for="email">Email</label>
-            <input id="email" name="email-address" type="text" required placeholder="first.last@company.com">
+            <label for="email">Email Address</label>
+            <input id="email" name="email-address" type="text" required placeholder="e.g., john.doe@example.com">
             
-            <label for="id-number">ID Number</label>
-            <input id="id-number" name="ID Number" type="password" required placeholder="123">
+            <label for="id-number">Identification Number</label>
+            <input id="id-number" name="ID Number" type="password" required placeholder="e.g., 12345">
             
-            <label for="credentials">Coordinator Credentials (Optional)</label>
-            <input id="credentials" name="credentials" type="password" placeholder="CRUD_APP">
+            <label for="credentials">Coordinator Credentials (if applicable)</label>
+            <input id="credentials" name="credentials" type="password" placeholder="Optional">
             
             <input type="submit" value="Login">
         </form>
