@@ -10,7 +10,7 @@ app = Flask(__name__)
 app.config.from_object(Config)
 app.secret_key = app.config['SECRET_KEY']
 
-app.permanent_session_lifetime = timedelta(minutes = 30) # max time
+app.permanent_session_lifetime = timedelta(minutes = 30) # max time, doesnt actually do anything rn (12_2_2024)
 
 # use below decorator
 #
