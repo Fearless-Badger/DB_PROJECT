@@ -8,6 +8,6 @@ from app import app
 print("Starting Flask...")
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host = '0.0.0.0', port = 5100)
 
 # Ensure the file ends with a newline
